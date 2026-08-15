@@ -1,0 +1,25 @@
+<div class="glass-card sheet-card fade-in-up">
+  <div class="sheet-card__header">
+    <div class="sheet-card__title">
+      <lucide-icon name="circle-dollar-sign" [size]="16"></lucide-icon>
+      Actual Allocation
+    </div>
+  </div>
+
+  <div class="donut-wrap">
+    <div class="donut" [style.background]="gradient()">
+      <div class="donut__hole">
+        <span class="donut__hole-label">Outflow</span>
+      </div>
+    </div>
+
+    <div class="donut-legend">
+      <div class="donut-legend__item" *ngFor="let seg of breakdown()">
+        <i class="donut-legend__swatch" [style.background]="'var(' + seg.color + ')'"></i>
+        <span class="donut-legend__label">{{ seg.label }}</span>
+        <span class="donut-legend__pct">{{ seg.percent | number: '1.0-0' }}%</span>
+      </div>
+      <p *ngIf="!hasData()" class="donut-empty">Log some actuals to see your allocation.</p>
+    </div>
+  </div>
+</div>

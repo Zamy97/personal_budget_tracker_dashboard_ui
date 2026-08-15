@@ -1,0 +1,22 @@
+<div class="glass-card sheet-card fade-in-up">
+  <div class="sheet-card__header">
+    <div class="sheet-card__title">
+      <lucide-icon name="trending-up" [size]="16"></lucide-icon>
+      Actuals by Section
+    </div>
+  </div>
+
+  <div class="chart">
+    <div class="chart__row" *ngFor="let bar of bars()">
+      <span class="chart__label">{{ bar.label }}</span>
+      <div class="chart__track">
+        <div
+          class="chart__fill"
+          [style.width.%]="bar.pct"
+          [style.background]="'var(' + bar.color + ')'"
+        ></div>
+      </div>
+      <span class="chart__value">{{ bar.actual | currency: 'USD':'symbol':'1.0-0' }}</span>
+    </div>
+  </div>
+</div>

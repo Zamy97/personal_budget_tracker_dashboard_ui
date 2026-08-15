@@ -1,0 +1,115 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
+.sheet-card {
+  height: 100%;
+  min-height: 0;
+  padding: 0.5rem 0.65rem 0.35rem;
+  border-top: 3px solid var(--accent, var(--income));
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.2rem;
+  color: var(--accent, var(--income));
+  flex: 0 0 auto;
+}
+
+.sheet-card__title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+  font-size: 0.74rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.sheet-card__add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 0.4rem;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: var(--accent, var(--income));
+    color: #06170f;
+  }
+}
+
+.sheet-table {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.sheet-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4rem;
+  align-items: center;
+  gap: 0.4rem;
+  border-bottom: 1px solid var(--glass-border);
+  flex: 1;
+  min-height: 0;
+  font-size: 0.82rem;
+
+  &--head {
+    border-bottom: 1px solid var(--glass-border-strong);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+    flex: 0.75;
+  }
+
+  &--total {
+    border-bottom: none;
+    border-top: 1px solid var(--glass-border-strong);
+    font-weight: 700;
+    flex: 1.15;
+  }
+
+  .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.row-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 0.35rem;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+
+.sheet-row:hover .row-delete {
+  opacity: 1;
+}
+
+.row-delete:hover {
+  background: var(--expense-dim);
+  color: var(--expense);
+}

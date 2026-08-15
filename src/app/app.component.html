@@ -1,0 +1,54 @@
+<div class="dashboard">
+  <div class="api-error-banner" *ngIf="budget.loadError()">
+    <lucide-icon name="wifi-off" [size]="13"></lucide-icon>
+    {{ budget.loadError() }}
+  </div>
+
+  <header class="dashboard__header">
+    <div class="dashboard__title-group">
+      <h1 class="app-title">
+        {{ budget.monthLabel().split(' ')[0] }}<span style="color: var(--income)">.</span>
+      </h1>
+      <p class="app-subtitle">Budget Planner</p>
+    </div>
+
+    <div class="stat-chip">
+      <span class="stat-chip__label">Left to Spend</span>
+      <span class="stat-chip__value" [class.negative]="budget.leftToSpend() < 0">
+        {{ budget.leftToSpend() | currency }}
+      </span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-chip__label">Days Left</span>
+      <span class="stat-chip__value">{{ budget.daysLeft() }}</span>
+    </div>
+
+    <div class="month-nav">
+      <button class="month-nav__btn" (click)="previousMonth()" title="Previous month">
+        <lucide-icon name="chevron-left" [size]="14"></lucide-icon>
+      </button>
+      <div class="month-nav__label">
+        <lucide-icon name="calendar-days" [size]="13" style="color: var(--text-secondary)"></lucide-icon>
+        {{ budget.monthLabel() }}
+      </div>
+      <button class="month-nav__btn" (click)="nextMonth()" title="Next month">
+        <lucide-icon name="chevron-right" [size]="14"></lucide-icon>
+      </button>
+      <button *ngIf="!budget.isCurrentMonth()" class="month-nav__today" (click)="jumpToToday()">Today</button>
+    </div>
+  </header>
+
+  <section class="dashboard__row dashboard__row--summary">
+    <app-cash-flow-summary></app-cash-flow-summary>
+    <app-group-totals-chart></app-group-totals-chart>
+    <app-allocation-donut></app-allocation-donut>
+  </section>
+
+  <section class="dashboard__tables">
+    <app-category-table group="income"></app-category-table>
+    <app-category-table group="expenses"></app-category-table>
+    <app-category-table group="bills"></app-category-table>
+    <app-category-table group="saving"></app-category-table>
+    <app-category-table group="debt"></app-category-table>
+  </section>
+</div>

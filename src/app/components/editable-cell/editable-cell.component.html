@@ -1,0 +1,19 @@
+<input
+  *ngIf="editing(); else displayTpl"
+  #inputRef
+  class="cell-input"
+  [class.cell-input--right]="align === 'right'"
+  [type]="type === 'currency' ? 'text' : 'text'"
+  [(ngModel)]="draftProxy"
+  (blur)="commit()"
+  (keydown)="onKeydown($event)"
+/>
+<ng-template #displayTpl>
+  <span
+    class="cell-display"
+    [class.cell-display--right]="align === 'right'"
+    [class.cell-display--bold]="bold"
+    (click)="startEdit()"
+    title="Click to edit"
+  >{{ displayValue }}</span>
+</ng-template>

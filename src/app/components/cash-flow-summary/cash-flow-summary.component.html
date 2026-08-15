@@ -1,0 +1,57 @@
+<div class="glass-card sheet-card fade-in-up">
+  <div class="sheet-card__header">
+    <div class="sheet-card__title">
+      <lucide-icon name="wallet" [size]="16"></lucide-icon>
+      Cash Flow Summary
+    </div>
+  </div>
+
+  <div class="sheet-table">
+    <div class="sheet-row sheet-row--head">
+      <span>Category</span>
+      <span class="num">Actual</span>
+    </div>
+
+    <div class="sheet-row">
+      <span>Start Balance</span>
+      <app-editable-cell
+        [value]="startBalance().actual"
+        type="currency"
+        align="right"
+        (valueChange)="onStartBalanceChange($event)"
+      ></app-editable-cell>
+    </div>
+
+    <div class="sheet-row" style="color: var(--income)">
+      <span>Income</span>
+      <span class="num">{{ cashFlow().income.actual | currency }}</span>
+    </div>
+
+    <div class="sheet-row" style="color: var(--expense)">
+      <span>Expenses</span>
+      <span class="num">-{{ cashFlow().expenses.actual | currency }}</span>
+    </div>
+
+    <div class="sheet-row" style="color: var(--info)">
+      <span>Bills</span>
+      <span class="num">-{{ cashFlow().bills.actual | currency }}</span>
+    </div>
+
+    <div class="sheet-row" style="color: var(--warn)">
+      <span>Saving</span>
+      <span class="num">-{{ cashFlow().saving.actual | currency }}</span>
+    </div>
+
+    <div class="sheet-row" style="color: var(--debt)">
+      <span>Debt</span>
+      <span class="num">-{{ cashFlow().debt.actual | currency }}</span>
+    </div>
+
+    <div class="sheet-row sheet-row--total">
+      <span>Total Leftover</span>
+      <span class="num" [class.negative]="cashFlow().totalLeftover < 0">
+        {{ cashFlow().totalLeftover | currency }}
+      </span>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,42 @@
+<div class="glass-card sheet-card fade-in-up">
+  <div class="sheet-card__header" [style.--accent]="'var(' + config().color + ')'">
+    <div class="sheet-card__title">
+      <lucide-icon [name]="config().icon" [size]="16"></lucide-icon>
+      {{ config().label }}
+    </div>
+    <button class="sheet-card__add" (click)="addRow()" title="Add row">
+      <lucide-icon name="plus" [size]="14"></lucide-icon>
+    </button>
+  </div>
+
+  <div class="sheet-table">
+    <div class="sheet-row sheet-row--head">
+      <span>Category</span>
+      <span class="num">Actual</span>
+      <span></span>
+    </div>
+
+    <div class="sheet-row" *ngFor="let row of rows()">
+      <app-editable-cell
+        [value]="row.name"
+        type="text"
+        (valueChange)="onNameChange(row.id, $event)"
+      ></app-editable-cell>
+      <app-editable-cell
+        [value]="row.actual"
+        type="currency"
+        align="right"
+        (valueChange)="onActualChange(row.id, $event)"
+      ></app-editable-cell>
+      <button class="row-delete" (click)="deleteRow(row.id)" title="Remove row">
+        <lucide-icon name="x" [size]="13"></lucide-icon>
+      </button>
+    </div>
+
+    <div class="sheet-row sheet-row--total">
+      <span>TOTAL</span>
+      <span class="num">{{ total().actual | currency }}</span>
+      <span></span>
+    </div>
+  </div>
+</div>

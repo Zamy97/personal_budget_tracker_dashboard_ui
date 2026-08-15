@@ -1,0 +1,164 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.dashboard {
+  position: relative;
+  height: 100%;
+  max-width: 1700px;
+  margin: 0 auto;
+  padding: 0.6rem 1rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow: hidden;
+}
+
+.dashboard__header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.api-error-banner {
+  position: absolute;
+  top: 0.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  font-size: 0.72rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.dashboard__title-group {
+  margin-right: auto;
+}
+
+/* Cash flow / chart / donut row: sized to fit Cash Flow Summary's row count. */
+.dashboard__row--summary {
+  flex: 8 8 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+/* Category tables: two implicit rows sized by relative row-counts (Bills ≈9, Saving ≈5). */
+.dashboard__tables {
+  flex: 14 14 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 9fr 5fr;
+  gap: 0.5rem;
+}
+
+.month-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem;
+  border-radius: 0.7rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+}
+
+.month-nav__btn {
+  width: 1.6rem;
+  height: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.month-nav__btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.month-nav__label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0 0.35rem;
+  min-width: 8rem;
+  justify-content: center;
+}
+
+.month-nav__today {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: var(--income-dim);
+  color: var(--income-light);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.app-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-family: 'Playfair Display', Georgia, serif;
+  line-height: 1.1;
+}
+
+.app-subtitle {
+  margin-top: 0.05rem;
+  font-size: 0.66rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.stat-chip {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.7rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+}
+
+.stat-chip__label {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.stat-chip__value {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--income);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.stat-chip__value.negative {
+  color: var(--expense);
+}
