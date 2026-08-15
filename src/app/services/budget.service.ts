@@ -67,7 +67,7 @@ export class BudgetService {
       },
       error: (err) => {
         console.error('Failed to load budget data from the API', err);
-        this.loadError.set('Could not reach the budget API — is budget-tracker-api running on :8082?');
+        this.loadError.set('Could not reach the budget API — the backend may be waking up or offline.');
         this.loaded.set(true);
       },
     });

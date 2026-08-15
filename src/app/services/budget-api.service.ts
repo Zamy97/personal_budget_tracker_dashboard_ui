@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { BudgetGroup } from '../models/budget.model';
 
 export interface CategoryDto {
@@ -22,7 +23,7 @@ export interface StartBalanceDto {
   actual: number;
 }
 
-const BASE_URL = '/api/budget';
+const BASE_URL = `${environment.apiBaseUrl.replace(/\/$/, '')}/api/budget`;
 
 /** Thin HTTP client for the Spring Boot + PostgreSQL budget-tracker-api backend. */
 @Injectable({ providedIn: 'root' })
