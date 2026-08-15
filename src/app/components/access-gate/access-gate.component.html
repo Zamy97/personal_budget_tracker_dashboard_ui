@@ -1,0 +1,28 @@
+<div class="gate">
+  <form class="gate__card glass-card" (submit)="submit($event)">
+    <div class="gate__icon">
+      <lucide-icon name="lock" [size]="22"></lucide-icon>
+    </div>
+    <h1 class="gate__title">Budget Planner<span>.</span></h1>
+    <p class="gate__subtitle">Enter the access code to open the dashboard</p>
+
+    <label class="gate__field">
+      <span class="sr-only">Access code</span>
+      <input
+        type="password"
+        name="access-code"
+        autocomplete="current-password"
+        placeholder="Access code"
+        [value]="draft()"
+        (input)="draft.set($any($event.target).value)"
+        [disabled]="access.submitting()"
+      />
+    </label>
+
+    <p class="gate__error" *ngIf="access.error()">{{ access.error() }}</p>
+
+    <button class="gate__submit" type="submit" [disabled]="access.submitting() || !draft().trim()">
+      {{ access.submitting() ? 'Checking…' : 'Unlock' }}
+    </button>
+  </form>
+</div>

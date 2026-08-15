@@ -31,6 +31,7 @@ import {
   CalendarDays,
   Save,
   WifiOff,
+  Lock,
 } from 'lucide-angular';
 
 /** Central icon registry — pass to `LucideAngularModule.pick()` once at the app root. */
@@ -67,4 +68,5 @@ export const APP_ICONS = {
   CalendarDays,
   Save,
   WifiOff,
+  Lock,
 };

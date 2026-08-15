@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import {
   ActualEntry,
@@ -9,6 +9,7 @@ import {
   GroupTotal,
   StartBalanceEntry,
 } from '../models/budget.model';
+import { AccessService } from './access.service';
 import { ActualDto, BudgetApiService, CategoryDto, StartBalanceDto } from './budget-api.service';
 
 function currentMonthKey(): string {
@@ -36,6 +37,7 @@ function toStartBalance(dto: StartBalanceDto): StartBalanceEntry {
 @Injectable({ providedIn: 'root' })
 export class BudgetService {
   private readonly api = inject(BudgetApiService);
+  private readonly access = inject(AccessService);
 
   categories = signal<BudgetCategory[]>([]);
   actuals = signal<ActualEntry[]>([]);
@@ -50,7 +52,11 @@ export class BudgetService {
   groupConfigs = GROUP_CONFIGS;
 
   constructor() {
-    this.reload();
+    effect(() => {
+      if (this.access.unlocked()) {
+        this.reload();
+      }
+    });
   }
 
   private reload(): void {

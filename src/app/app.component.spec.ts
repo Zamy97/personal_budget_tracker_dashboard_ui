@@ -1,9 +1,10 @@
 import { TestBed } from '@angular/core/testing';
-import { importProvidersFrom } from '@angular/core';
+import { importProvidersFrom, signal } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { LucideAngularModule } from 'lucide-angular';
 import { AppComponent } from './app.component';
+import { AccessService } from './services/access.service';
 import { APP_ICONS } from './shared/lucide-icons';
 
 describe('AppComponent', () => {
@@ -14,6 +15,17 @@ describe('AppComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         importProvidersFrom(LucideAngularModule.pick(APP_ICONS)),
+        {
+          provide: AccessService,
+          useValue: {
+            ready: signal(true),
+            unlocked: signal(true),
+            submitting: signal(false),
+            error: signal(null),
+            code: signal(''),
+            start: () => undefined,
+          },
+        },
       ],
     }).compileComponents();
   });

@@ -1,4 +1,10 @@
-<div class="dashboard">
+<div class="boot" *ngIf="!access.ready()">
+  <p>Loading…</p>
+</div>
+
+<app-access-gate *ngIf="access.ready() && !access.unlocked()"></app-access-gate>
+
+<div class="dashboard" *ngIf="access.ready() && access.unlocked()">
   <div class="api-error-banner" *ngIf="budget.loadError()">
     <lucide-icon name="wifi-off" [size]="13"></lucide-icon>
     {{ budget.loadError() }}

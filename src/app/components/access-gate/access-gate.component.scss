@@ -1,0 +1,105 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.gate {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.gate__card {
+  width: min(100%, 22rem);
+  padding: 2rem 1.6rem 1.6rem;
+  text-align: center;
+}
+
+.gate__icon {
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.9rem;
+  background: var(--income-dim);
+  color: var(--income);
+}
+
+.gate__title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.7rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.gate__title span {
+  color: var(--income);
+}
+
+.gate__subtitle {
+  margin-top: 0.45rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.gate__field {
+  display: block;
+  margin-top: 1.35rem;
+}
+
+.gate__field input {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.7rem;
+  border: 1px solid var(--glass-border-strong);
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  outline: none;
+}
+
+.gate__field input:focus {
+  border-color: var(--income);
+}
+
+.gate__error {
+  margin-top: 0.7rem;
+  font-size: 0.78rem;
+  color: var(--expense);
+}
+
+.gate__submit {
+  margin-top: 1rem;
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border: none;
+  border-radius: 0.7rem;
+  background: var(--income);
+  color: #062314;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.gate__submit:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
