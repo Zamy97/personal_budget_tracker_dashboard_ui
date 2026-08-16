@@ -12,7 +12,7 @@
   <div class="sheet-table">
     <div class="sheet-row sheet-row--head">
       <span>Category</span>
-      <span class="num">Actual</span>
+      <span class="num">Total</span>
       <span></span>
     </div>
 
@@ -22,15 +22,22 @@
         type="text"
         (valueChange)="onNameChange(row.id, $event)"
       ></app-editable-cell>
-      <app-editable-cell
-        [value]="row.actual"
-        type="currency"
-        align="right"
-        (valueChange)="onActualChange(row.id, $event)"
-      ></app-editable-cell>
-      <button class="row-delete" (click)="deleteRow(row.id)" title="Remove row">
-        <lucide-icon name="x" [size]="13"></lucide-icon>
+      <button class="amount-button" (click)="openDetails(row)" title="View dated entries">
+        {{ row.actual | currency }}
       </button>
+      <div class="row-actions">
+        <button
+          class="row-action"
+          [class.row-action--active]="row.recurring"
+          (click)="toggleRecurring(row.id)"
+          [title]="row.recurring ? 'Carries into new months' : 'Does not carry into new months'"
+        >
+          <lucide-icon name="repeat-2" [size]="12"></lucide-icon>
+        </button>
+        <button class="row-delete" (click)="deleteRow(row.id)" title="Remove row">
+          <lucide-icon name="x" [size]="13"></lucide-icon>
+        </button>
+      </div>
     </div>
 
     <div class="sheet-row sheet-row--total">
@@ -40,3 +47,10 @@
     </div>
   </div>
 </div>
+
+<app-line-item-editor
+  *ngIf="selectedRow() as row"
+  [categoryId]="row.id"
+  [categoryName]="row.name"
+  (closed)="selectedRow.set(null)"
+></app-line-item-editor>

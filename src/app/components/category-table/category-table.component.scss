@@ -60,7 +60,7 @@
 
 .sheet-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1.4rem;
+  grid-template-columns: 1fr 0.8fr 2.7rem;
   align-items: center;
   gap: 0.4rem;
   border-bottom: 1px solid var(--glass-border);
@@ -90,6 +90,28 @@
   }
 }
 
+.amount-button {
+  padding: 0.25rem;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: right;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.amount-button:hover {
+  color: var(--income-light);
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.row-action,
 .row-delete {
   display: flex;
   align-items: center;
@@ -103,6 +125,16 @@
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+
+.row-action {
+  color: var(--text-muted);
+  opacity: 0.55;
+}
+
+.row-action--active {
+  color: var(--income);
+  opacity: 1;
 }
 
 .sheet-row:hover .row-delete {

@@ -1,16 +1,15 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import {
-  ActualEntry,
+  ActualLineItem,
   BudgetCategory,
   BudgetGroup,
   CategoryRow,
   GROUP_CONFIGS,
   GroupTotal,
-  StartBalanceEntry,
 } from '../models/budget.model';
 import { AccessService } from './access.service';
-import { ActualDto, BudgetApiService, CategoryDto, StartBalanceDto } from './budget-api.service';
+import { BudgetApiService, CategoryDto, LineItemDto } from './budget-api.service';
 
 function currentMonthKey(): string {
   const now = new Date();
@@ -18,15 +17,24 @@ function currentMonthKey(): string {
 }
 
 function toCategory(dto: CategoryDto): BudgetCategory {
-  return { id: String(dto.id), group: dto.group as BudgetGroup, name: dto.name, order: dto.order };
+  return {
+    id: String(dto.id),
+    group: dto.group as BudgetGroup,
+    name: dto.name,
+    order: dto.order,
+    recurring: dto.recurring,
+  };
 }
 
-function toActual(dto: ActualDto): ActualEntry {
-  return { id: String(dto.id), categoryId: String(dto.categoryId), month: dto.month, actual: dto.actual };
-}
-
-function toStartBalance(dto: StartBalanceDto): StartBalanceEntry {
-  return { month: dto.month, actual: dto.actual };
+function toLineItem(dto: LineItemDto): ActualLineItem {
+  return {
+    id: String(dto.id),
+    categoryId: String(dto.categoryId),
+    month: dto.month,
+    date: dto.date,
+    note: dto.note,
+    amount: dto.amount,
+  };
 }
 
 /**
@@ -38,10 +46,10 @@ function toStartBalance(dto: StartBalanceDto): StartBalanceEntry {
 export class BudgetService {
   private readonly api = inject(BudgetApiService);
   private readonly access = inject(AccessService);
+  private readonly initializedMonths = new Set<string>();
 
   categories = signal<BudgetCategory[]>([]);
-  actuals = signal<ActualEntry[]>([]);
-  startBalances = signal<StartBalanceEntry[]>([]);
+  lineItems = signal<ActualLineItem[]>([]);
 
   /** True once the initial load from the API has completed (success or failure). */
   loaded = signal(false);
@@ -57,18 +65,30 @@ export class BudgetService {
         this.reload();
       }
     });
+    effect(() => {
+      const month = this.selectedMonth();
+      if (!this.loaded() || this.initializedMonths.has(month)) {
+        return;
+      }
+      this.initializedMonths.add(month);
+      this.api.initializeMonth(month).subscribe({
+        next: () => this.refreshLineItems(),
+        error: (err) => {
+          this.initializedMonths.delete(month);
+          console.error('Failed to carry the previous month forward', err);
+        },
+      });
+    });
   }
 
   private reload(): void {
     forkJoin({
       categories: this.api.getCategories(),
-      actuals: this.api.getActuals(),
-      startBalances: this.api.getStartBalances(),
+      lineItems: this.api.getLineItems(),
     }).subscribe({
-      next: ({ categories, actuals, startBalances }) => {
+      next: ({ categories, lineItems }) => {
         this.categories.set(categories.map(toCategory));
-        this.actuals.set(actuals.map(toActual));
-        this.startBalances.set(startBalances.map(toStartBalance));
+        this.lineItems.set(lineItems.map(toLineItem));
         this.loaded.set(true);
       },
       error: (err) => {
@@ -76,6 +96,13 @@ export class BudgetService {
         this.loadError.set('Could not reach the budget API — the backend may be waking up or offline.');
         this.loaded.set(true);
       },
+    });
+  }
+
+  private refreshLineItems(): void {
+    this.api.getLineItems().subscribe({
+      next: (dtos) => this.lineItems.set(dtos.map(toLineItem)),
+      error: (err) => console.error('Failed to refresh detailed entries', err),
     });
   }
 
@@ -123,7 +150,9 @@ export class BudgetService {
   // ---------- category rows (per selected month) ----------
 
   private actualFor(categoryId: string, month: string): number {
-    return this.actuals().find((a) => a.categoryId === categoryId && a.month === month)?.actual ?? 0;
+    return this.lineItems()
+      .filter((item) => item.categoryId === categoryId && item.month === month)
+      .reduce((total, item) => total + item.amount, 0);
   }
 
   rowsByGroup = computed(() => {
@@ -137,6 +166,7 @@ export class BudgetService {
           id: c.id,
           name: c.name,
           actual: this.actualFor(c.id, month),
+          recurring: c.recurring,
         } satisfies CategoryRow));
       map.set(cfg.group, rows);
     }
@@ -162,22 +192,16 @@ export class BudgetService {
 
   // ---------- cash flow summary ----------
 
-  startBalance = computed<StartBalanceEntry>(() => {
-    const month = this.selectedMonth();
-    return this.startBalances().find((s) => s.month === month) ?? { month, actual: 0 };
-  });
-
   cashFlow = computed(() => {
-    const start = this.startBalance();
     const income = this.totalFor('income');
     const expenses = this.totalFor('expenses');
     const bills = this.totalFor('bills');
     const saving = this.totalFor('saving');
     const debt = this.totalFor('debt');
 
-    const totalLeftover = start.actual + income.actual - expenses.actual - bills.actual - saving.actual - debt.actual;
+    const totalLeftover = income.actual - expenses.actual - bills.actual - saving.actual - debt.actual;
 
-    return { start, income, expenses, bills, saving, debt, totalLeftover };
+    return { income, expenses, bills, saving, debt, totalLeftover };
   });
 
   leftToSpend = computed(() => this.cashFlow().totalLeftover);
@@ -196,46 +220,26 @@ export class BudgetService {
   // Each mutation updates the local signal immediately (snappy inline editing), then persists to
   // the API in the background. Errors are logged — the next full reload will pick up server truth.
 
-  setStartBalance(value: number): void {
-    const month = this.selectedMonth();
-    this.startBalances.update((list) => {
-      const existing = list.find((s) => s.month === month);
-      if (existing) {
-        return list.map((s) => (s.month === month ? { ...s, actual: value } : s));
-      }
-      return [...list, { month, actual: value }];
-    });
-    this.api.upsertStartBalance(month, value).subscribe({
-      error: (err) => console.error('Failed to save start balance', err),
-    });
-  }
-
   updateCategoryName(id: string, name: string): void {
     const category = this.categories().find((c) => c.id === id);
     if (!category) {
       return;
     }
     this.categories.update((list) => list.map((c) => (c.id === id ? { ...c, name } : c)));
-    this.api.updateCategory(Number(id), category.group, name).subscribe({
+    this.api.updateCategory(Number(id), category.group, name, category.recurring).subscribe({
       error: (err) => console.error('Failed to save category name', err),
     });
   }
 
-  updateActual(categoryId: string, actual: number): void {
-    const month = this.selectedMonth();
-    this.actuals.update((list) => {
-      const existing = list.find((a) => a.categoryId === categoryId && a.month === month);
-      if (existing) {
-        return list.map((a) => (a === existing ? { ...a, actual } : a));
-      }
-      return [...list, { id: `pending-${categoryId}-${month}`, categoryId, month, actual }];
-    });
-    this.api.upsertActual(Number(categoryId), month, actual).subscribe({
-      next: (dto) =>
-        this.actuals.update((list) =>
-          list.map((a) => (a.categoryId === categoryId && a.month === month ? toActual(dto) : a)),
-        ),
-      error: (err) => console.error('Failed to save actual amount', err),
+  toggleRecurring(id: string): void {
+    const category = this.categories().find((c) => c.id === id);
+    if (!category) {
+      return;
+    }
+    const recurring = !category.recurring;
+    this.categories.update((list) => list.map((c) => (c.id === id ? { ...c, recurring } : c)));
+    this.api.updateCategory(Number(id), category.group, category.name, recurring).subscribe({
+      error: (err) => console.error('Failed to save recurring preference', err),
     });
   }
 
@@ -248,9 +252,44 @@ export class BudgetService {
 
   deleteCategory(id: string): void {
     this.categories.update((list) => list.filter((c) => c.id !== id));
-    this.actuals.update((list) => list.filter((a) => a.categoryId !== id));
+    this.lineItems.update((list) => list.filter((item) => item.categoryId !== id));
     this.api.deleteCategory(Number(id)).subscribe({
       error: (err) => console.error('Failed to delete category', err),
+    });
+  }
+
+  lineItemsFor(categoryId: string): ActualLineItem[] {
+    const month = this.selectedMonth();
+    return this.lineItems()
+      .filter((item) => item.categoryId === categoryId && item.month === month)
+      .sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+  }
+
+  addLineItem(categoryId: string, date: string, note: string, amount: number): void {
+    const month = this.selectedMonth();
+    this.api.createLineItem(Number(categoryId), month, date, note, amount).subscribe({
+      next: (dto) => this.lineItems.update((list) => [...list, toLineItem(dto)]),
+      error: (err) => console.error('Failed to add detailed entry', err),
+    });
+  }
+
+  updateLineItem(item: ActualLineItem): void {
+    this.lineItems.update((list) => list.map((current) => (current.id === item.id ? item : current)));
+    this.api
+      .updateLineItem(Number(item.id), Number(item.categoryId), item.month, item.date, item.note, item.amount)
+      .subscribe({
+        next: (dto) =>
+          this.lineItems.update((list) =>
+            list.map((current) => (current.id === item.id ? toLineItem(dto) : current)),
+          ),
+        error: (err) => console.error('Failed to update detailed entry', err),
+      });
+  }
+
+  deleteLineItem(id: string): void {
+    this.lineItems.update((list) => list.filter((item) => item.id !== id));
+    this.api.deleteLineItem(Number(id)).subscribe({
+      error: (err) => console.error('Failed to delete detailed entry', err),
     });
   }
 }

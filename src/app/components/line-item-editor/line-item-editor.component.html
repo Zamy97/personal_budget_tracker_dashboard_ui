@@ -1,0 +1,79 @@
+<div class="editor-backdrop" (click)="closed.emit()">
+  <section class="editor glass-card" (click)="$event.stopPropagation()">
+    <header class="editor__header">
+      <div>
+        <p>Detailed entries</p>
+        <h2>{{ categoryName }}</h2>
+      </div>
+      <button type="button" class="icon-button" (click)="closed.emit()" title="Close">
+        <lucide-icon name="x" [size]="17"></lucide-icon>
+      </button>
+    </header>
+
+    <div class="entry-list">
+      <div class="entry-row entry-row--head">
+        <span>Date</span>
+        <span>Note</span>
+        <span>Amount</span>
+        <span></span>
+      </div>
+
+      <div class="entry-row" *ngFor="let item of items">
+        <input
+          type="date"
+          [value]="item.date"
+          (change)="update(item, { date: $any($event.target).value })"
+        />
+        <input
+          type="text"
+          maxlength="200"
+          placeholder="What was this for?"
+          [value]="item.note"
+          (change)="update(item, { note: $any($event.target).value })"
+        />
+        <input
+          type="number"
+          inputmode="decimal"
+          step="0.01"
+          [value]="item.amount"
+          (change)="update(item, { amount: +$any($event.target).value })"
+        />
+        <button type="button" class="icon-button icon-button--danger" (click)="remove(item.id)" title="Delete entry">
+          <lucide-icon name="trash-2" [size]="14"></lucide-icon>
+        </button>
+      </div>
+
+      <p class="empty" *ngIf="items.length === 0">No entries yet for this month.</p>
+    </div>
+
+    <form class="entry-row entry-row--add" (submit)="$event.preventDefault(); add()">
+      <input type="date" name="date" [ngModel]="addDate()" (ngModelChange)="addDate.set($event)" required />
+      <input
+        type="text"
+        name="note"
+        maxlength="200"
+        placeholder="e.g. Gas fill-up"
+        [ngModel]="addNote()"
+        (ngModelChange)="addNote.set($event)"
+      />
+      <input
+        type="number"
+        name="amount"
+        inputmode="decimal"
+        step="0.01"
+        placeholder="0.00"
+        [ngModel]="addAmount()"
+        (ngModelChange)="addAmount.set($event)"
+        required
+      />
+      <button type="submit" class="add-button" title="Add entry">
+        <lucide-icon name="plus" [size]="15"></lucide-icon>
+      </button>
+    </form>
+
+    <footer>
+      <span>Total</span>
+      <strong>{{ total | currency }}</strong>
+    </footer>
+  </section>
+</div>

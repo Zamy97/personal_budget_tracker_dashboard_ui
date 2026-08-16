@@ -32,6 +32,7 @@ import {
   Save,
   WifiOff,
   Lock,
+  Repeat2,
 } from 'lucide-angular';
 
 /** Central icon registry — pass to `LucideAngularModule.pick()` once at the app root. */
@@ -69,4 +70,5 @@ export const APP_ICONS = {
   Save,
   WifiOff,
   Lock,
+  Repeat2,
 };

@@ -1,14 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, computed, inject } from '@angular/core';
+import { Component, Input, computed, inject, signal } from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { EditableCellComponent } from '../editable-cell/editable-cell.component';
+import { LineItemEditorComponent } from '../line-item-editor/line-item-editor.component';
 import { BudgetService } from '../../services/budget.service';
-import { BudgetGroup, GROUP_CONFIGS } from '../../models/budget.model';
+import { BudgetGroup, CategoryRow, GROUP_CONFIGS } from '../../models/budget.model';
 
 @Component({
   selector: 'app-category-table',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, EditableCellComponent],
+  imports: [CommonModule, LucideAngularModule, EditableCellComponent, LineItemEditorComponent],
   templateUrl: './category-table.component.html',
   styleUrls: ['./category-table.component.scss'],
 })
@@ -20,13 +21,18 @@ export class CategoryTableComponent {
   config = computed(() => GROUP_CONFIGS.find((c) => c.group === this.group)!);
   rows = computed(() => this.budget.rowsByGroup().get(this.group) ?? []);
   total = computed(() => this.budget.groupTotals().find((g) => g.group === this.group)!);
+  selectedRow = signal<CategoryRow | null>(null);
 
   onNameChange(id: string, value: string | number): void {
     this.budget.updateCategoryName(id, String(value));
   }
 
-  onActualChange(id: string, value: string | number): void {
-    this.budget.updateActual(id, Number(value));
+  toggleRecurring(id: string): void {
+    this.budget.toggleRecurring(id);
+  }
+
+  openDetails(row: CategoryRow): void {
+    this.selectedRow.set(row);
   }
 
   addRow(): void {

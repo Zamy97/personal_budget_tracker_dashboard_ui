@@ -12,16 +12,6 @@
       <span class="num">Actual</span>
     </div>
 
-    <div class="sheet-row">
-      <span>Start Balance</span>
-      <app-editable-cell
-        [value]="startBalance().actual"
-        type="currency"
-        align="right"
-        (valueChange)="onStartBalanceChange($event)"
-      ></app-editable-cell>
-    </div>
-
     <div class="sheet-row" style="color: var(--income)">
       <span>Income</span>
       <span class="num">{{ cashFlow().income.actual | currency }}</span>

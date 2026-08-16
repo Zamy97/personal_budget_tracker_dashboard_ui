@@ -26,6 +26,8 @@ export interface BudgetCategory {
   name: string;
   /** Sort position within its group. */
   order: number;
+  /** Whether this category's dated entries should initialize the next blank month. */
+  recurring: boolean;
 }
 
 /** The amount actually logged for one category in one specific month ("YYYY-MM"). */
@@ -36,10 +38,14 @@ export interface ActualEntry {
   actual: number;
 }
 
-/** Manually entered rollover balance for a given month — the "Start Balance" row. */
-export interface StartBalanceEntry {
+/** One dated amount contributing to a category's monthly actual total. */
+export interface ActualLineItem {
+  id: string;
+  categoryId: string;
   month: string;
-  actual: number;
+  date: string;
+  note: string;
+  amount: number;
 }
 
 /** Derived row used for rendering any category table (checkbook-register style). */
@@ -47,6 +53,7 @@ export interface CategoryRow {
   id: string;
   name: string;
   actual: number;
+  recurring: boolean;
 }
 
 /** Derived total for a whole group, used in the Cash Flow Summary + chart. */

@@ -9,6 +9,7 @@ export interface CategoryDto {
   group: string;
   name: string;
   order: number;
+  recurring: boolean;
 }
 
 export interface ActualDto {
@@ -18,9 +19,13 @@ export interface ActualDto {
   actual: number;
 }
 
-export interface StartBalanceDto {
+export interface LineItemDto {
+  id: number;
+  categoryId: number;
   month: string;
-  actual: number;
+  date: string;
+  note: string;
+  amount: number;
 }
 
 const BASE_URL = `${environment.apiBaseUrl.replace(/\/$/, '')}/api/budget`;
@@ -34,12 +39,12 @@ export class BudgetApiService {
     return this.http.get<CategoryDto[]>(`${BASE_URL}/categories`);
   }
 
-  createCategory(group: BudgetGroup, name: string): Observable<CategoryDto> {
-    return this.http.post<CategoryDto>(`${BASE_URL}/categories`, { group, name });
+  createCategory(group: BudgetGroup, name: string, recurring = false): Observable<CategoryDto> {
+    return this.http.post<CategoryDto>(`${BASE_URL}/categories`, { group, name, recurring });
   }
 
-  updateCategory(id: number, group: BudgetGroup, name: string): Observable<CategoryDto> {
-    return this.http.put<CategoryDto>(`${BASE_URL}/categories/${id}`, { group, name });
+  updateCategory(id: number, group: BudgetGroup, name: string, recurring: boolean): Observable<CategoryDto> {
+    return this.http.put<CategoryDto>(`${BASE_URL}/categories/${id}`, { group, name, recurring });
   }
 
   deleteCategory(id: number): Observable<void> {
@@ -54,11 +59,42 @@ export class BudgetApiService {
     return this.http.put<ActualDto>(`${BASE_URL}/actuals`, { categoryId, month, actual });
   }
 
-  getStartBalances(): Observable<StartBalanceDto[]> {
-    return this.http.get<StartBalanceDto[]>(`${BASE_URL}/start-balances`);
+  initializeMonth(month: string): Observable<ActualDto[]> {
+    return this.http.post<ActualDto[]>(`${BASE_URL}/actuals/initialize`, { month });
   }
 
-  upsertStartBalance(month: string, actual: number): Observable<StartBalanceDto> {
-    return this.http.put<StartBalanceDto>(`${BASE_URL}/start-balances`, { month, actual });
+  getLineItems(): Observable<LineItemDto[]> {
+    return this.http.get<LineItemDto[]>(`${BASE_URL}/line-items`);
+  }
+
+  createLineItem(
+    categoryId: number,
+    month: string,
+    date: string,
+    note: string,
+    amount: number,
+  ): Observable<LineItemDto> {
+    return this.http.post<LineItemDto>(`${BASE_URL}/line-items`, { categoryId, month, date, note, amount });
+  }
+
+  updateLineItem(
+    id: number,
+    categoryId: number,
+    month: string,
+    date: string,
+    note: string,
+    amount: number,
+  ): Observable<LineItemDto> {
+    return this.http.put<LineItemDto>(`${BASE_URL}/line-items/${id}`, {
+      categoryId,
+      month,
+      date,
+      note,
+      amount,
+    });
+  }
+
+  deleteLineItem(id: number): Observable<void> {
+    return this.http.delete<void>(`${BASE_URL}/line-items/${id}`);
   }
 }
