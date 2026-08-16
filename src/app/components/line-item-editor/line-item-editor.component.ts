@@ -31,9 +31,36 @@ export class LineItemEditorComponent {
     return this.items.reduce((sum, item) => sum + item.amount, 0);
   }
 
+  get monthLabel(): string {
+    return this.budget.monthLabel();
+  }
+
+  get monthStart(): string {
+    return `${this.budget.selectedMonth()}-01`;
+  }
+
+  get monthEnd(): string {
+    const [year, month] = this.budget.selectedMonth().split('-').map(Number);
+    return `${this.budget.selectedMonth()}-${new Date(year, month, 0).getDate()}`;
+  }
+
+  get canAdd(): boolean {
+    const amount = this.addAmount();
+    return !!this.addDate() && amount != null && Number.isFinite(amount);
+  }
+
+  /** Formats "2026-08-15" as "Aug 15" without letting the timezone shift the day. */
+  formatDay(iso: string): string {
+    const [year, month, day] = iso.split('-').map(Number);
+    if (!year || !month || !day) {
+      return iso;
+    }
+    return new Date(year, month - 1, day).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
   add(): void {
     const amount = this.addAmount();
-    if (!this.addDate() || amount == null || !Number.isFinite(amount)) {
+    if (!this.canAdd || amount == null) {
       return;
     }
     this.budget.addLineItem(this.categoryId, this.addDate(), this.addNote(), amount);

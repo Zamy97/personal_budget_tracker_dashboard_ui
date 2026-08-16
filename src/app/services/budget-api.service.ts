@@ -39,16 +39,12 @@ export class BudgetApiService {
     return this.http.get<CategoryDto[]>(`${BASE_URL}/categories`);
   }
 
-  createCategory(group: BudgetGroup, name: string, recurring = false): Observable<CategoryDto> {
-    return this.http.post<CategoryDto>(`${BASE_URL}/categories`, { group, name, recurring });
+  createCategory(group: BudgetGroup, name: string, month: string, recurring = false): Observable<CategoryDto> {
+    return this.http.post<CategoryDto>(`${BASE_URL}/categories`, { group, name, recurring, month });
   }
 
   updateCategory(id: number, group: BudgetGroup, name: string, recurring: boolean): Observable<CategoryDto> {
     return this.http.put<CategoryDto>(`${BASE_URL}/categories/${id}`, { group, name, recurring });
-  }
-
-  deleteCategory(id: number): Observable<void> {
-    return this.http.delete<void>(`${BASE_URL}/categories/${id}`);
   }
 
   getActuals(): Observable<ActualDto[]> {
@@ -57,6 +53,11 @@ export class BudgetApiService {
 
   upsertActual(categoryId: number, month: string, actual: number): Observable<ActualDto> {
     return this.http.put<ActualDto>(`${BASE_URL}/actuals`, { categoryId, month, actual });
+  }
+
+  /** Removes a row from a single month, leaving the same category in other months untouched. */
+  removeCategoryFromMonth(categoryId: number, month: string): Observable<void> {
+    return this.http.delete<void>(`${BASE_URL}/actuals/${categoryId}/${month}`);
   }
 
   initializeMonth(month: string): Observable<ActualDto[]> {

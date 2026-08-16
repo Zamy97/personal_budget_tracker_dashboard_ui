@@ -2,7 +2,7 @@
   <section class="editor glass-card" (click)="$event.stopPropagation()">
     <header class="editor__header">
       <div>
-        <p>Detailed entries</p>
+        <p>{{ monthLabel }}</p>
         <h2>{{ categoryName }}</h2>
       </div>
       <button type="button" class="icon-button" (click)="closed.emit()" title="Close">
@@ -10,10 +10,12 @@
       </button>
     </header>
 
+    <p class="hint">Every entry you add here is summed into this category's total for the month.</p>
+
     <div class="entry-list">
       <div class="entry-row entry-row--head">
         <span>Date</span>
-        <span>Note</span>
+        <span>What it was for</span>
         <span>Amount</span>
         <span></span>
       </div>
@@ -21,59 +23,105 @@
       <div class="entry-row" *ngFor="let item of items">
         <input
           type="date"
+          [min]="monthStart"
+          [max]="monthEnd"
           [value]="item.date"
           (change)="update(item, { date: $any($event.target).value })"
         />
         <input
           type="text"
           maxlength="200"
-          placeholder="What was this for?"
+          placeholder="Add a note"
           [value]="item.note"
           (change)="update(item, { note: $any($event.target).value })"
         />
-        <input
-          type="number"
-          inputmode="decimal"
-          step="0.01"
-          [value]="item.amount"
-          (change)="update(item, { amount: +$any($event.target).value })"
-        />
+        <span class="money-field">
+          <span class="money-field__symbol">$</span>
+          <input
+            type="number"
+            inputmode="decimal"
+            step="0.01"
+            min="0"
+            [value]="item.amount"
+            (change)="update(item, { amount: +$any($event.target).value })"
+          />
+        </span>
         <button type="button" class="icon-button icon-button--danger" (click)="remove(item.id)" title="Delete entry">
           <lucide-icon name="trash-2" [size]="14"></lucide-icon>
         </button>
       </div>
 
-      <p class="empty" *ngIf="items.length === 0">No entries yet for this month.</p>
+      <p class="empty" *ngIf="items.length === 0">No entries yet — add your first one below.</p>
     </div>
 
-    <form class="entry-row entry-row--add" (submit)="$event.preventDefault(); add()">
-      <input type="date" name="date" [ngModel]="addDate()" (ngModelChange)="addDate.set($event)" required />
-      <input
-        type="text"
-        name="note"
-        maxlength="200"
-        placeholder="e.g. Gas fill-up"
-        [ngModel]="addNote()"
-        (ngModelChange)="addNote.set($event)"
-      />
-      <input
-        type="number"
-        name="amount"
-        inputmode="decimal"
-        step="0.01"
-        placeholder="0.00"
-        [ngModel]="addAmount()"
-        (ngModelChange)="addAmount.set($event)"
-        required
-      />
-      <button type="submit" class="add-button" title="Add entry">
-        <lucide-icon name="plus" [size]="15"></lucide-icon>
-      </button>
+    <form class="add-form" (submit)="$event.preventDefault(); add()">
+      <p class="add-form__title">Add an entry</p>
+
+      <div class="add-form__fields">
+        <label class="field">
+          <span class="field__label">Date</span>
+          <input
+            type="date"
+            name="date"
+            [min]="monthStart"
+            [max]="monthEnd"
+            [ngModel]="addDate()"
+            (ngModelChange)="addDate.set($event)"
+            required
+          />
+        </label>
+
+        <label class="field">
+          <span class="field__label">What was it for?</span>
+          <input
+            type="text"
+            name="note"
+            maxlength="200"
+            placeholder="e.g. Gas fill-up"
+            [ngModel]="addNote()"
+            (ngModelChange)="addNote.set($event)"
+          />
+        </label>
+
+        <label class="field field--money">
+          <span class="field__label">Amount</span>
+          <span class="money-field">
+            <span class="money-field__symbol">$</span>
+            <input
+              type="number"
+              name="amount"
+              inputmode="decimal"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+              [ngModel]="addAmount()"
+              (ngModelChange)="addAmount.set($event)"
+              required
+            />
+          </span>
+        </label>
+
+        <button type="submit" class="add-button" [disabled]="!canAdd">
+          <lucide-icon name="plus" [size]="15"></lucide-icon>
+          <span>Add</span>
+        </button>
+      </div>
+
+      <p class="add-form__preview" [class.add-form__preview--ready]="canAdd">
+        <ng-container *ngIf="canAdd; else addFormHint">
+          Adds <strong>{{ addAmount() ?? 0 | currency }}</strong> on {{ formatDay(addDate()) }}, bringing
+          {{ categoryName }} to <strong>{{ total + (addAmount() ?? 0) | currency }}</strong>.
+        </ng-container>
+        <ng-template #addFormHint>Pick a date and type an amount to add it to this month's total.</ng-template>
+      </p>
     </form>
 
     <footer>
-      <span>Total</span>
-      <strong>{{ total | currency }}</strong>
+      <span class="footer__count">{{ items.length }} {{ items.length === 1 ? 'entry' : 'entries' }}</span>
+      <span class="footer__total">
+        <span>Month total</span>
+        <strong>{{ total | currency }}</strong>
+      </span>
     </footer>
   </section>
 </div>

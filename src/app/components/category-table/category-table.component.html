@@ -22,7 +22,7 @@
         type="text"
         (valueChange)="onNameChange(row.id, $event)"
       ></app-editable-cell>
-      <button class="amount-button" (click)="openDetails(row)" title="View dated entries">
+      <button class="amount-button" (click)="openDetails(row)" title="Add or edit dated entries">
         {{ row.actual | currency }}
       </button>
       <div class="row-actions">
@@ -34,7 +34,7 @@
         >
           <lucide-icon name="repeat-2" [size]="12"></lucide-icon>
         </button>
-        <button class="row-delete" (click)="deleteRow(row.id)" title="Remove row">
+        <button class="row-delete" (click)="deleteRow(row.id)" [title]="'Remove from ' + monthLabel() + ' only'">
           <lucide-icon name="x" [size]="13"></lucide-icon>
         </button>
       </div>

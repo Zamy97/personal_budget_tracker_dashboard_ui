@@ -21,6 +21,7 @@ export class CategoryTableComponent {
   config = computed(() => GROUP_CONFIGS.find((c) => c.group === this.group)!);
   rows = computed(() => this.budget.rowsByGroup().get(this.group) ?? []);
   total = computed(() => this.budget.groupTotals().find((g) => g.group === this.group)!);
+  monthLabel = this.budget.monthLabel;
   selectedRow = signal<CategoryRow | null>(null);
 
   onNameChange(id: string, value: string | number): void {
@@ -40,6 +41,6 @@ export class CategoryTableComponent {
   }
 
   deleteRow(id: string): void {
-    this.budget.deleteCategory(id);
+    this.budget.removeRowFromMonth(id);
   }
 }

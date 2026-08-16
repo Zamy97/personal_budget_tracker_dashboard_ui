@@ -9,7 +9,7 @@ import {
   GroupTotal,
 } from '../models/budget.model';
 import { AccessService } from './access.service';
-import { BudgetApiService, CategoryDto, LineItemDto } from './budget-api.service';
+import { ActualDto, BudgetApiService, CategoryDto, LineItemDto } from './budget-api.service';
 
 function currentMonthKey(): string {
   const now = new Date();
@@ -24,6 +24,11 @@ function toCategory(dto: CategoryDto): BudgetCategory {
     order: dto.order,
     recurring: dto.recurring,
   };
+}
+
+/** Key identifying that a category is part of a given month's row list. */
+function membershipKey(categoryId: string | number, month: string): string {
+  return `${categoryId}|${month}`;
 }
 
 function toLineItem(dto: LineItemDto): ActualLineItem {
@@ -51,6 +56,12 @@ export class BudgetService {
   categories = signal<BudgetCategory[]>([]);
   lineItems = signal<ActualLineItem[]>([]);
 
+  /**
+   * Which categories belong to which month. Categories themselves are shared records, so this is
+   * what lets a row be removed from September while August keeps its own copy.
+   */
+  private monthMembership = signal<ReadonlySet<string>>(new Set());
+
   /** True once the initial load from the API has completed (success or failure). */
   loaded = signal(false);
   loadError = signal<string | null>(null);
@@ -72,7 +83,10 @@ export class BudgetService {
       }
       this.initializedMonths.add(month);
       this.api.initializeMonth(month).subscribe({
-        next: () => this.refreshLineItems(),
+        next: (actuals) => {
+          this.addMembership(actuals);
+          this.refreshLineItems();
+        },
         error: (err) => {
           this.initializedMonths.delete(month);
           console.error('Failed to carry the previous month forward', err);
@@ -84,10 +98,12 @@ export class BudgetService {
   private reload(): void {
     forkJoin({
       categories: this.api.getCategories(),
+      actuals: this.api.getActuals(),
       lineItems: this.api.getLineItems(),
     }).subscribe({
-      next: ({ categories, lineItems }) => {
+      next: ({ categories, actuals, lineItems }) => {
         this.categories.set(categories.map(toCategory));
+        this.monthMembership.set(new Set(actuals.map((a) => membershipKey(a.categoryId, a.month))));
         this.lineItems.set(lineItems.map(toLineItem));
         this.loaded.set(true);
       },
@@ -96,6 +112,14 @@ export class BudgetService {
         this.loadError.set('Could not reach the budget API — the backend may be waking up or offline.');
         this.loaded.set(true);
       },
+    });
+  }
+
+  private addMembership(actuals: ActualDto[]): void {
+    this.monthMembership.update((current) => {
+      const next = new Set(current);
+      actuals.forEach((a) => next.add(membershipKey(a.categoryId, a.month)));
+      return next;
     });
   }
 
@@ -157,10 +181,11 @@ export class BudgetService {
 
   rowsByGroup = computed(() => {
     const month = this.selectedMonth();
+    const membership = this.monthMembership();
     const map = new Map<BudgetGroup, CategoryRow[]>();
     for (const cfg of GROUP_CONFIGS) {
       const rows = this.categories()
-        .filter((c) => c.group === cfg.group)
+        .filter((c) => c.group === cfg.group && membership.has(membershipKey(c.id, month)))
         .sort((a, b) => a.order - b.order)
         .map((c) => ({
           id: c.id,
@@ -244,17 +269,27 @@ export class BudgetService {
   }
 
   addCategory(group: BudgetGroup, name = 'New item'): void {
-    this.api.createCategory(group, name).subscribe({
-      next: (dto) => this.categories.update((list) => [...list, toCategory(dto)]),
+    const month = this.selectedMonth();
+    this.api.createCategory(group, name, month).subscribe({
+      next: (dto) => {
+        this.categories.update((list) => [...list, toCategory(dto)]);
+        this.monthMembership.update((current) => new Set(current).add(membershipKey(dto.id, month)));
+      },
       error: (err) => console.error('Failed to create category', err),
     });
   }
 
-  deleteCategory(id: string): void {
-    this.categories.update((list) => list.filter((c) => c.id !== id));
-    this.lineItems.update((list) => list.filter((item) => item.categoryId !== id));
-    this.api.deleteCategory(Number(id)).subscribe({
-      error: (err) => console.error('Failed to delete category', err),
+  /** Removes the row from the month on screen only — the same category in other months stays put. */
+  removeRowFromMonth(id: string): void {
+    const month = this.selectedMonth();
+    this.monthMembership.update((current) => {
+      const next = new Set(current);
+      next.delete(membershipKey(id, month));
+      return next;
+    });
+    this.lineItems.update((list) => list.filter((item) => !(item.categoryId === id && item.month === month)));
+    this.api.removeCategoryFromMonth(Number(id), month).subscribe({
+      error: (err) => console.error('Failed to remove the row from this month', err),
     });
   }
 
