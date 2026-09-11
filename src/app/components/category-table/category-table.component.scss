@@ -43,11 +43,12 @@
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
 
   &:hover {
     background: var(--accent, var(--income));
     color: #06170f;
+    transform: rotate(90deg) scale(1.05);
   }
 }
 
@@ -68,6 +69,11 @@
   flex: 0 0 auto;
   min-height: 2.05rem;
   font-size: 0.82rem;
+  transition: background 0.15s ease;
+
+  &:hover:not(.sheet-row--head):not(.sheet-row--total) {
+    background: rgba(255, 255, 255, 0.03);
+  }
 
   &--head {
     border-bottom: 1px solid var(--glass-border-strong);
@@ -119,10 +125,14 @@
   font: inherit;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
+  border-radius: 0.35rem;
+  transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease;
 }
 
 .amount-button:hover {
   color: var(--income-light);
+  background: rgba(0, 217, 126, 0.08);
+  transform: translateX(-1px);
 }
 
 .row-actions {
@@ -144,7 +154,7 @@
   color: var(--text-muted);
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
+  transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease, transform 0.12s ease;
 }
 
 .row-action {
@@ -164,4 +174,5 @@
 .row-delete:hover {
   background: var(--expense-dim);
   color: var(--expense);
+  transform: scale(1.08);
 }

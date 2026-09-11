@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from './services/auth.service';
 import { BudgetService } from './services/budget.service';
@@ -28,23 +28,33 @@ export class AppComponent {
   auth = inject(AuthService);
   budget = inject(BudgetService);
 
+  /** Bumps on month change so the tables gently re-animate. */
+  monthMotion = signal(0);
+
   constructor() {
     this.auth.start();
   }
 
   previousMonth(): void {
     this.budget.goToPreviousMonth();
+    this.pulseMonth();
   }
 
   nextMonth(): void {
     this.budget.goToNextMonth();
+    this.pulseMonth();
   }
 
   jumpToToday(): void {
     this.budget.goToCurrentMonth();
+    this.pulseMonth();
   }
 
   logout(): void {
     this.auth.logout();
+  }
+
+  private pulseMonth(): void {
+    this.monthMotion.update((n) => n + 1);
   }
 }

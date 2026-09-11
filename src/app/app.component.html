@@ -1,5 +1,5 @@
 <div class="boot" *ngIf="!auth.ready()">
-  <p>Loading…</p>
+  <p class="boot__pulse">Loading…</p>
 </div>
 
 <app-auth-gate *ngIf="auth.ready() && !auth.unlocked()"></app-auth-gate>
@@ -10,10 +10,10 @@
     {{ budget.loadError() }}
   </div>
 
-  <header class="dashboard__header">
+  <header class="dashboard__header anim-enter" style="--delay: 0">
     <div class="dashboard__title-group">
-      <h1 class="app-title">
-        {{ budget.monthLabel().split(' ')[0] }}<span style="color: var(--income)">.</span>
+      <h1 class="app-title" [attr.data-month]="budget.selectedMonth()">
+        {{ budget.monthLabel().split(' ')[0] }}<span class="app-title__dot">.</span>
       </h1>
       <p class="app-subtitle">Budget Planner</p>
     </div>
@@ -51,13 +51,21 @@
     </div>
   </header>
 
-  <section class="dashboard__row dashboard__row--summary">
+  <section
+    class="dashboard__row dashboard__row--summary anim-enter"
+    style="--delay: 1"
+    [attr.data-month]="budget.selectedMonth()"
+  >
     <app-cash-flow-summary></app-cash-flow-summary>
     <app-group-totals-chart></app-group-totals-chart>
     <app-allocation-donut></app-allocation-donut>
   </section>
 
-  <section class="dashboard__tables">
+  <section
+    class="dashboard__tables anim-enter"
+    style="--delay: 2"
+    [attr.data-pulse]="monthMotion()"
+  >
     <div class="dashboard__tables-side">
       <app-category-table group="income"></app-category-table>
       <app-category-table group="saving"></app-category-table>
