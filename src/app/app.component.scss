@@ -55,13 +55,18 @@
   margin-right: auto;
 }
 
+/* Shared 3-column rhythm so summary cards line up with Income / Bills / Expenses below. */
+.dashboard__row--summary,
+.dashboard__tables {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.2fr) minmax(0, 1.2fr);
+  gap: 0.5rem;
+}
+
 /* Cash flow / chart / donut row — a bit tighter so category tables get more room. */
 .dashboard__row--summary {
   flex: 5 5 0;
   min-height: 0;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
 }
 
 /*
@@ -71,9 +76,6 @@
 .dashboard__tables {
   flex: 16 16 0;
   min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.2fr) minmax(0, 1.2fr);
-  gap: 0.5rem;
 }
 
 .dashboard__tables-side {
