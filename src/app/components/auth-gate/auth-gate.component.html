@@ -69,12 +69,12 @@
         type="password"
         name="password"
         [attr.autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'"
-        [placeholder]="mode() === 'signup' ? 'At least 8 characters' : 'Password'"
+        [placeholder]="mode() === 'signup' ? 'At least 6 characters' : 'Password'"
         [ngModel]="password()"
         (ngModelChange)="password.set($event)"
         [disabled]="auth.submitting()"
         required
-        minlength="8"
+        minlength="6"
       />
     </label>
 
