@@ -5,7 +5,11 @@
     </div>
     <h1 class="gate__title">Budget Planner<span>.</span></h1>
     <p class="gate__subtitle">
-      {{ mode() === 'login' ? 'Sign in to open your budget' : 'Create an account for your own budget' }}
+      {{
+        mode() === 'login'
+          ? 'Sign in to open your budget'
+          : 'Create an account — you will need an invite code'
+      }}
     </p>
 
     <div class="gate__tabs" role="tablist">
@@ -28,6 +32,20 @@
         (ngModelChange)="displayName.set($event)"
         [disabled]="auth.submitting()"
         maxlength="100"
+      />
+    </label>
+
+    <label class="gate__field" *ngIf="mode() === 'signup' && auth.signupInviteRequired()">
+      <span>Invite code</span>
+      <input
+        type="password"
+        name="invite-code"
+        autocomplete="off"
+        placeholder="Code from the app owner"
+        [ngModel]="inviteCode()"
+        (ngModelChange)="inviteCode.set($event)"
+        [disabled]="auth.submitting()"
+        required
       />
     </label>
 
@@ -65,7 +83,12 @@
     <button
       class="gate__submit"
       type="submit"
-      [disabled]="auth.submitting() || !email().trim() || !password()"
+      [disabled]="
+        auth.submitting() ||
+        !email().trim() ||
+        !password() ||
+        (mode() === 'signup' && auth.signupInviteRequired() && !inviteCode().trim())
+      "
     >
       <ng-container *ngIf="auth.submitting(); else idleLabel">
         {{ mode() === 'login' ? 'Signing in…' : 'Creating account…' }}

@@ -18,6 +18,7 @@ export class AuthGateComponent {
   email = signal('');
   password = signal('');
   displayName = signal('');
+  inviteCode = signal('');
 
   switchMode(mode: 'login' | 'signup'): void {
     this.mode.set(mode);
@@ -37,11 +38,16 @@ export class AuthGateComponent {
 
     if (this.mode() === 'signup') {
       const name = this.displayName().trim();
+      const invite = this.inviteCode().trim();
       if (!name || password.length < 8) {
         this.auth.error.set(password.length < 8 ? 'Password must be at least 8 characters' : 'Enter your name');
         return;
       }
-      this.auth.signup(email, password, name).subscribe();
+      if (this.auth.signupInviteRequired() && !invite) {
+        this.auth.error.set('Enter the invite code you were given');
+        return;
+      }
+      this.auth.signup(email, password, name, invite).subscribe();
       return;
     }
 

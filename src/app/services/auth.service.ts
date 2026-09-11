@@ -37,6 +37,8 @@ export class AuthService {
   error = signal<string | null>(null);
   token = signal('');
   user = signal<AuthUser | null>(null);
+  /** When true, the signup form must include the shared invite code. */
+  signupInviteRequired = signal(true);
 
   private started = false;
   private timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -48,6 +50,11 @@ export class AuthService {
       return;
     }
     this.started = true;
+
+    this.http.get<{ signupInviteRequired: boolean }>(`${AUTH_URL}/config`).subscribe({
+      next: (cfg) => this.signupInviteRequired.set(!!cfg.signupInviteRequired),
+      error: () => this.signupInviteRequired.set(true),
+    });
 
     const storedToken = localStorage.getItem(TOKEN_KEY) ?? '';
     const storedUser = this.readStoredUser();
@@ -75,11 +82,11 @@ export class AuthService {
     });
   }
 
-  signup(email: string, password: string, displayName: string): Observable<AuthResponse> {
+  signup(email: string, password: string, displayName: string, inviteCode = ''): Observable<AuthResponse> {
     this.submitting.set(true);
     this.error.set(null);
     return this.http
-      .post<AuthResponse>(`${AUTH_URL}/signup`, { email, password, displayName })
+      .post<AuthResponse>(`${AUTH_URL}/signup`, { email, password, displayName, inviteCode })
       .pipe(
         tap((res) => this.acceptSession(res)),
         catchError((err) => {
@@ -140,6 +147,8 @@ export class AuthService {
     this.ready.set(true);
     if (err?.status === 401) {
       this.error.set('Invalid email or password');
+    } else if (err?.status === 403) {
+      this.error.set(err?.error?.message || 'Invalid or missing invite code');
     } else if (err?.status === 409) {
       this.error.set('An account with that email already exists');
     } else if (err?.error?.message) {
