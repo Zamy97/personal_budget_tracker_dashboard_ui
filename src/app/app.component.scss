@@ -55,23 +55,41 @@
   margin-right: auto;
 }
 
-/* Cash flow / chart / donut row: sized to fit Cash Flow Summary's row count. */
+/* Cash flow / chart / donut row — a bit tighter so category tables get more room. */
 .dashboard__row--summary {
-  flex: 8 8 0;
+  flex: 5 5 0;
   min-height: 0;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
 }
 
-/* Category tables: two implicit rows sized by relative row-counts (Bills ≈9, Saving ≈5). */
+/*
+ * Dense sections (Expenses / Bills) get full height.
+ * Slimmer ones (Income / Saving / Debt) stack on the left so empty space isn't wasted.
+ */
 .dashboard__tables {
-  flex: 14 14 0;
+  flex: 16 16 0;
   min-height: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: 9fr 5fr;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.2fr) minmax(0, 1.2fr);
   gap: 0.5rem;
+}
+
+.dashboard__tables-side {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dashboard__tables-side > app-category-table {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.dashboard__table--tall {
+  min-height: 0;
 }
 
 .month-nav {
@@ -171,3 +189,41 @@
 .stat-chip__value.negative {
   color: var(--expense);
 }
+
+.account-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.3rem 0.35rem 0.3rem 0.7rem;
+  border-radius: 0.7rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+}
+
+.account-chip__name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  max-width: 8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-chip__logout {
+  width: 1.7rem;
+  height: 1.7rem;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.account-chip__logout:hover {
+  color: var(--expense);
+  background: var(--expense-dim);
+}
+

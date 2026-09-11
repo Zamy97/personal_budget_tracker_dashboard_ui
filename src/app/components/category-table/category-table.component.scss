@@ -7,7 +7,7 @@
 .sheet-card {
   height: 100%;
   min-height: 0;
-  padding: 0.5rem 0.65rem 0.35rem;
+  padding: 0.5rem 0.65rem 0.4rem;
   border-top: 3px solid var(--accent, var(--income));
   display: flex;
   flex-direction: column;
@@ -17,7 +17,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.25rem;
   color: var(--accent, var(--income));
   flex: 0 0 auto;
 }
@@ -58,14 +58,15 @@
   min-height: 0;
 }
 
+/* Rows keep a fixed readable height — they never shrink when you add more. */
 .sheet-row {
   display: grid;
   grid-template-columns: 1fr 0.8fr 2.7rem;
   align-items: center;
   gap: 0.4rem;
   border-bottom: 1px solid var(--glass-border);
-  flex: 1;
-  min-height: 0;
+  flex: 0 0 auto;
+  min-height: 2.05rem;
   font-size: 0.82rem;
 
   &--head {
@@ -74,20 +75,39 @@
     text-transform: uppercase;
     letter-spacing: 0.03em;
     color: var(--text-muted);
-    flex: 0.75;
+    min-height: 1.55rem;
   }
 
   &--total {
     border-bottom: none;
     border-top: 1px solid var(--glass-border-strong);
     font-weight: 700;
-    flex: 1.15;
+    min-height: 2.15rem;
+    margin-top: auto;
   }
 
   .num {
     text-align: right;
     font-variant-numeric: tabular-nums;
   }
+}
+
+.sheet-table__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+
+.sheet-table__body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sheet-table__body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
 }
 
 .amount-button {

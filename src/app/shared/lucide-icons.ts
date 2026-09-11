@@ -33,6 +33,8 @@ import {
   WifiOff,
   Lock,
   Repeat2,
+  LogOut,
+  UserPlus,
 } from 'lucide-angular';
 
 /** Central icon registry — pass to `LucideAngularModule.pick()` once at the app root. */
@@ -71,4 +73,6 @@ export const APP_ICONS = {
   WifiOff,
   Lock,
   Repeat2,
+  LogOut,
+  UserPlus,
 };

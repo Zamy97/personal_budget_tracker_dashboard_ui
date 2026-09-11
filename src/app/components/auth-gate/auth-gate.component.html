@@ -1,0 +1,78 @@
+<div class="gate">
+  <form class="gate__card glass-card" (submit)="submit($event)">
+    <div class="gate__icon">
+      <lucide-icon [name]="mode() === 'login' ? 'lock' : 'user-plus'" [size]="22"></lucide-icon>
+    </div>
+    <h1 class="gate__title">Budget Planner<span>.</span></h1>
+    <p class="gate__subtitle">
+      {{ mode() === 'login' ? 'Sign in to open your budget' : 'Create an account for your own budget' }}
+    </p>
+
+    <div class="gate__tabs" role="tablist">
+      <button type="button" role="tab" [class.active]="mode() === 'login'" (click)="switchMode('login')">
+        Sign in
+      </button>
+      <button type="button" role="tab" [class.active]="mode() === 'signup'" (click)="switchMode('signup')">
+        Sign up
+      </button>
+    </div>
+
+    <label class="gate__field" *ngIf="mode() === 'signup'">
+      <span>Name</span>
+      <input
+        type="text"
+        name="display-name"
+        autocomplete="name"
+        placeholder="Your name"
+        [ngModel]="displayName()"
+        (ngModelChange)="displayName.set($event)"
+        [disabled]="auth.submitting()"
+        maxlength="100"
+      />
+    </label>
+
+    <label class="gate__field">
+      <span>Email</span>
+      <input
+        type="email"
+        name="email"
+        autocomplete="email"
+        placeholder="you@example.com"
+        [ngModel]="email()"
+        (ngModelChange)="email.set($event)"
+        [disabled]="auth.submitting()"
+        required
+      />
+    </label>
+
+    <label class="gate__field">
+      <span>Password</span>
+      <input
+        type="password"
+        name="password"
+        [attr.autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'"
+        [placeholder]="mode() === 'signup' ? 'At least 8 characters' : 'Password'"
+        [ngModel]="password()"
+        (ngModelChange)="password.set($event)"
+        [disabled]="auth.submitting()"
+        required
+        minlength="8"
+      />
+    </label>
+
+    <p class="gate__error" *ngIf="auth.error()">{{ auth.error() }}</p>
+
+    <button
+      class="gate__submit"
+      type="submit"
+      [disabled]="auth.submitting() || !email().trim() || !password()"
+    >
+      <ng-container *ngIf="auth.submitting(); else idleLabel">
+        {{ mode() === 'login' ? 'Signing in…' : 'Creating account…' }}
+      </ng-container>
+      <ng-template #idleLabel>
+        {{ mode() === 'login' ? 'Sign in' : 'Create account' }}
+      </ng-template>
+    </button>
+  </form>
+</div>

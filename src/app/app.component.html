@@ -1,10 +1,10 @@
-<div class="boot" *ngIf="!access.ready()">
+<div class="boot" *ngIf="!auth.ready()">
   <p>Loading…</p>
 </div>
 
-<app-access-gate *ngIf="access.ready() && !access.unlocked()"></app-access-gate>
+<app-auth-gate *ngIf="auth.ready() && !auth.unlocked()"></app-auth-gate>
 
-<div class="dashboard" *ngIf="access.ready() && access.unlocked()">
+<div class="dashboard" *ngIf="auth.ready() && auth.unlocked()">
   <div class="api-error-banner" *ngIf="budget.loadError()">
     <lucide-icon name="wifi-off" [size]="13"></lucide-icon>
     {{ budget.loadError() }}
@@ -42,6 +42,13 @@
       </button>
       <button *ngIf="!budget.isCurrentMonth()" class="month-nav__today" (click)="jumpToToday()">Today</button>
     </div>
+
+    <div class="account-chip">
+      <span class="account-chip__name">{{ auth.user()?.displayName }}</span>
+      <button type="button" class="account-chip__logout" (click)="logout()" title="Sign out">
+        <lucide-icon name="log-out" [size]="14"></lucide-icon>
+      </button>
+    </div>
   </header>
 
   <section class="dashboard__row dashboard__row--summary">
@@ -51,10 +58,12 @@
   </section>
 
   <section class="dashboard__tables">
-    <app-category-table group="income"></app-category-table>
-    <app-category-table group="expenses"></app-category-table>
-    <app-category-table group="bills"></app-category-table>
-    <app-category-table group="saving"></app-category-table>
-    <app-category-table group="debt"></app-category-table>
+    <div class="dashboard__tables-side">
+      <app-category-table group="income"></app-category-table>
+      <app-category-table group="saving"></app-category-table>
+      <app-category-table group="debt"></app-category-table>
+    </div>
+    <app-category-table class="dashboard__table--tall" group="bills"></app-category-table>
+    <app-category-table class="dashboard__table--tall" group="expenses"></app-category-table>
   </section>
 </div>

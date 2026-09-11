@@ -4,7 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { LucideAngularModule } from 'lucide-angular';
 import { AppComponent } from './app.component';
-import { AccessService } from './services/access.service';
+import { AuthService } from './services/auth.service';
 import { APP_ICONS } from './shared/lucide-icons';
 
 describe('AppComponent', () => {
@@ -16,14 +16,16 @@ describe('AppComponent', () => {
         provideHttpClientTesting(),
         importProvidersFrom(LucideAngularModule.pick(APP_ICONS)),
         {
-          provide: AccessService,
+          provide: AuthService,
           useValue: {
             ready: signal(true),
             unlocked: signal(true),
             submitting: signal(false),
             error: signal(null),
-            code: signal(''),
+            token: signal(''),
+            user: signal({ id: 1, email: 'test@example.com', displayName: 'Test' }),
             start: () => undefined,
+            logout: () => undefined,
           },
         },
       ],

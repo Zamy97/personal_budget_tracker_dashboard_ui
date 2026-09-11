@@ -8,7 +8,7 @@ import {
   GROUP_CONFIGS,
   GroupTotal,
 } from '../models/budget.model';
-import { AccessService } from './access.service';
+import { AuthService } from './auth.service';
 import { ActualDto, BudgetApiService, CategoryDto, LineItemDto } from './budget-api.service';
 
 function currentMonthKey(): string {
@@ -50,7 +50,7 @@ function toLineItem(dto: LineItemDto): ActualLineItem {
 @Injectable({ providedIn: 'root' })
 export class BudgetService {
   private readonly api = inject(BudgetApiService);
-  private readonly access = inject(AccessService);
+  private readonly auth = inject(AuthService);
   private readonly initializedMonths = new Set<string>();
 
   categories = signal<BudgetCategory[]>([]);
@@ -72,8 +72,10 @@ export class BudgetService {
 
   constructor() {
     effect(() => {
-      if (this.access.unlocked()) {
+      if (this.auth.unlocked()) {
         this.reload();
+      } else {
+        this.resetState();
       }
     });
     effect(() => {
@@ -93,6 +95,15 @@ export class BudgetService {
         },
       });
     });
+  }
+
+  private resetState(): void {
+    this.categories.set([]);
+    this.lineItems.set([]);
+    this.monthMembership.set(new Set());
+    this.initializedMonths.clear();
+    this.loaded.set(false);
+    this.loadError.set(null);
   }
 
   private reload(): void {

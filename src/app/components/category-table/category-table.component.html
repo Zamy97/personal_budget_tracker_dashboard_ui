@@ -16,27 +16,29 @@
       <span></span>
     </div>
 
-    <div class="sheet-row" *ngFor="let row of rows()">
-      <app-editable-cell
-        [value]="row.name"
-        type="text"
-        (valueChange)="onNameChange(row.id, $event)"
-      ></app-editable-cell>
-      <button class="amount-button" (click)="openDetails(row)" title="Add or edit dated entries">
-        {{ row.actual | currency }}
-      </button>
-      <div class="row-actions">
-        <button
-          class="row-action"
-          [class.row-action--active]="row.recurring"
-          (click)="toggleRecurring(row.id)"
-          [title]="row.recurring ? 'Carries into new months' : 'Does not carry into new months'"
-        >
-          <lucide-icon name="repeat-2" [size]="12"></lucide-icon>
+    <div class="sheet-table__body">
+      <div class="sheet-row" *ngFor="let row of rows()">
+        <app-editable-cell
+          [value]="row.name"
+          type="text"
+          (valueChange)="onNameChange(row.id, $event)"
+        ></app-editable-cell>
+        <button class="amount-button" (click)="openDetails(row)" title="Add or edit dated entries">
+          {{ row.actual | currency }}
         </button>
-        <button class="row-delete" (click)="deleteRow(row.id)" [title]="'Remove from ' + monthLabel() + ' only'">
-          <lucide-icon name="x" [size]="13"></lucide-icon>
-        </button>
+        <div class="row-actions">
+          <button
+            class="row-action"
+            [class.row-action--active]="row.recurring"
+            (click)="toggleRecurring(row.id)"
+            [title]="row.recurring ? 'Carries into new months' : 'Does not carry into new months'"
+          >
+            <lucide-icon name="repeat-2" [size]="12"></lucide-icon>
+          </button>
+          <button class="row-delete" (click)="deleteRow(row.id)" [title]="'Remove from ' + monthLabel() + ' only'">
+            <lucide-icon name="x" [size]="13"></lucide-icon>
+          </button>
+        </div>
       </div>
     </div>
 
