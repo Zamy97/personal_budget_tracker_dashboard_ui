@@ -1,0 +1,187 @@
+<div class="wallet anim-enter">
+  <div class="wallet__summary">
+    <div class="wallet-stat">
+      <span class="wallet-stat__label">Card balances</span>
+      <strong>{{ totals().cardBalance | currency }}</strong>
+      <small *ngIf="totals().cardLimit">of {{ totals().cardLimit | currency }} limit</small>
+    </div>
+    <div class="wallet-stat">
+      <span class="wallet-stat__label">Mortgage & debt</span>
+      <strong>{{ totals().debtBalance | currency }}</strong>
+      <small *ngIf="totals().debtPayment">{{ totals().debtPayment | currency }}/mo payments</small>
+    </div>
+    <div class="wallet-stat">
+      <span class="wallet-stat__label">Memberships / yr</span>
+      <strong>{{ totals().membershipFees | currency }}</strong>
+      <small *ngIf="totals().plannedCount">{{ totals().plannedCount }} planned</small>
+    </div>
+  </div>
+
+  <div class="wallet__toolbar">
+    <div class="wallet-tabs" role="tablist">
+      <button
+        type="button"
+        class="wallet-tabs__btn"
+        *ngFor="let tab of wallet.tabs"
+        role="tab"
+        [class.active]="wallet.selectedKind() === tab.kind"
+        (click)="selectTab(tab.kind)"
+      >
+        <lucide-icon [name]="tab.icon" [size]="14"></lucide-icon>
+        {{ tab.label }}
+      </button>
+    </div>
+
+    <button type="button" class="wallet__add" (click)="beginCreate()">
+      <lucide-icon name="plus" [size]="14"></lucide-icon>
+      Add {{ activeTab().label.replace(' & Debt', '').replace('Credit ', '') }}
+    </button>
+  </div>
+
+  <p class="wallet__hint">{{ activeTab().hint }}</p>
+
+  <div class="wallet-grid" *ngIf="items().length > 0 || editingId() === 'new'; else empty">
+    <article
+      class="account-card"
+      *ngFor="let item of items()"
+      [class.account-card--planned]="item.status === 'PLANNED'"
+      [class.account-card--closed]="item.status === 'CLOSED'"
+      [style.--card-accent]="item.accent || 'var(--income)'"
+    >
+      <header class="account-card__top">
+        <div>
+          <p class="account-card__institution">{{ item.institution || activeTab().label }}</p>
+          <h3>{{ item.name }}</h3>
+        </div>
+        <span class="account-card__badge">{{ item.status | lowercase }}</span>
+      </header>
+
+      <div class="account-card__balance">
+        <span>{{ wallet.selectedKind() === 'MEMBERSHIP' ? 'Annual fee' : 'Balance' }}</span>
+        <strong>
+          {{
+            wallet.selectedKind() === 'MEMBERSHIP'
+              ? ((item.annualFee || 0) | currency)
+              : (item.balance | currency)
+          }}
+        </strong>
+      </div>
+
+      <div class="account-card__meter" *ngIf="utilization(item) as pct">
+        <div class="account-card__meter-track">
+          <div class="account-card__meter-fill" [style.width.%]="pct"></div>
+        </div>
+        <span>{{ pct | number: '1.0-0' }}% of {{ item.creditLimit | currency }}</span>
+      </div>
+
+      <dl class="account-card__meta">
+        <div *ngIf="item.monthlyPayment != null">
+          <dt>Payment</dt>
+          <dd>{{ item.monthlyPayment | currency }}/mo</dd>
+        </div>
+        <div *ngIf="item.dueDay != null">
+          <dt>Due</dt>
+          <dd>Day {{ item.dueDay }}</dd>
+        </div>
+        <div *ngIf="item.interestRate != null">
+          <dt>APR</dt>
+          <dd>{{ item.interestRate }}%</dd>
+        </div>
+        <div *ngIf="item.annualFee != null && wallet.selectedKind() !== 'MEMBERSHIP'">
+          <dt>Annual fee</dt>
+          <dd>{{ item.annualFee | currency }}</dd>
+        </div>
+        <div *ngIf="item.renewsOn">
+          <dt>Renews</dt>
+          <dd>{{ item.renewsOn }}</dd>
+        </div>
+      </dl>
+
+      <p class="account-card__notes" *ngIf="item.notes">{{ item.notes }}</p>
+
+      <footer class="account-card__actions">
+        <button type="button" (click)="beginEdit(item)">Edit</button>
+        <button type="button" class="danger" (click)="remove(item.id)">Remove</button>
+      </footer>
+    </article>
+
+    <form class="account-card account-card--editor" *ngIf="editingId()" (submit)="$event.preventDefault(); save()">
+      <h3>{{ editingId() === 'new' ? 'Add item' : 'Edit item' }}</h3>
+
+      <label>
+        <span>Name</span>
+        <input [ngModel]="draftName()" (ngModelChange)="draftName.set($event)" name="name" required />
+      </label>
+      <label>
+        <span>Institution</span>
+        <input [ngModel]="draftInstitution()" (ngModelChange)="draftInstitution.set($event)" name="institution" />
+      </label>
+      <label>
+        <span>Status</span>
+        <select [ngModel]="draftStatus()" (ngModelChange)="draftStatus.set($event)" name="status">
+          <option value="ACTIVE">Active</option>
+          <option value="PLANNED">Planned</option>
+          <option value="CLOSED">Closed</option>
+        </select>
+      </label>
+
+      <div class="editor-row">
+        <label *ngIf="wallet.selectedKind() !== 'MEMBERSHIP'">
+          <span>Balance</span>
+          <input type="number" step="0.01" [ngModel]="draftBalance()" (ngModelChange)="draftBalance.set($event)" name="balance" />
+        </label>
+        <label *ngIf="wallet.selectedKind() === 'CREDIT_CARD'">
+          <span>Limit</span>
+          <input type="number" step="0.01" [ngModel]="draftLimit()" (ngModelChange)="draftLimit.set($event)" name="limit" />
+        </label>
+        <label>
+          <span>{{ wallet.selectedKind() === 'MEMBERSHIP' ? 'Annual fee' : 'Monthly payment' }}</span>
+          <input
+            type="number"
+            step="0.01"
+            [ngModel]="wallet.selectedKind() === 'MEMBERSHIP' ? draftAnnualFee() : draftPayment()"
+            (ngModelChange)="wallet.selectedKind() === 'MEMBERSHIP' ? draftAnnualFee.set($event) : draftPayment.set($event)"
+            name="payment"
+          />
+        </label>
+      </div>
+
+      <div class="editor-row">
+        <label *ngIf="wallet.selectedKind() !== 'MEMBERSHIP'">
+          <span>Due day</span>
+          <input type="number" min="1" max="31" [ngModel]="draftDueDay()" (ngModelChange)="draftDueDay.set($event)" name="due" />
+        </label>
+        <label *ngIf="wallet.selectedKind() !== 'MEMBERSHIP'">
+          <span>APR %</span>
+          <input type="number" step="0.01" [ngModel]="draftRate()" (ngModelChange)="draftRate.set($event)" name="apr" />
+        </label>
+        <label *ngIf="wallet.selectedKind() === 'CREDIT_CARD'">
+          <span>Annual fee</span>
+          <input type="number" step="0.01" [ngModel]="draftAnnualFee()" (ngModelChange)="draftAnnualFee.set($event)" name="fee" />
+        </label>
+        <label *ngIf="wallet.selectedKind() === 'MEMBERSHIP'">
+          <span>Renews on</span>
+          <input type="date" [ngModel]="draftRenewsOn()" (ngModelChange)="draftRenewsOn.set($event)" name="renews" />
+        </label>
+      </div>
+
+      <label>
+        <span>Notes</span>
+        <input [ngModel]="draftNotes()" (ngModelChange)="draftNotes.set($event)" name="notes" placeholder="Optional" />
+      </label>
+
+      <div class="editor-actions">
+        <button type="button" class="ghost" (click)="cancel()">Cancel</button>
+        <button type="submit" [disabled]="!draftName().trim()">Save</button>
+      </div>
+    </form>
+  </div>
+
+  <ng-template #empty>
+    <div class="wallet-empty glass-card">
+      <lucide-icon [name]="activeTab().icon" [size]="22"></lucide-icon>
+      <p>Nothing here yet — add your first {{ activeTab().label.toLowerCase() }} item.</p>
+      <button type="button" (click)="beginCreate()">Add one</button>
+    </div>
+  </ng-template>
+</div>

@@ -8,6 +8,9 @@ import { CashFlowSummaryComponent } from './components/cash-flow-summary/cash-fl
 import { GroupTotalsChartComponent } from './components/group-totals-chart/group-totals-chart.component';
 import { AllocationDonutComponent } from './components/allocation-donut/allocation-donut.component';
 import { CategoryTableComponent } from './components/category-table/category-table.component';
+import { WalletBoardComponent } from './components/wallet-board/wallet-board.component';
+
+type AppView = 'budget' | 'wallet';
 
 @Component({
   selector: 'app-root',
@@ -20,6 +23,7 @@ import { CategoryTableComponent } from './components/category-table/category-tab
     GroupTotalsChartComponent,
     AllocationDonutComponent,
     CategoryTableComponent,
+    WalletBoardComponent,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
@@ -28,11 +32,21 @@ export class AppComponent {
   auth = inject(AuthService);
   budget = inject(BudgetService);
 
+  view = signal<AppView>('budget');
+
   /** Bumps on month change so the tables gently re-animate. */
   monthMotion = signal(0);
 
   constructor() {
     this.auth.start();
+  }
+
+  showBudget(): void {
+    this.view.set('budget');
+  }
+
+  showWallet(): void {
+    this.view.set('wallet');
   }
 
   previousMonth(): void {

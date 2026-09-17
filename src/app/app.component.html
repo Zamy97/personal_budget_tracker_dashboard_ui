@@ -13,35 +13,61 @@
   <header class="dashboard__header anim-enter" style="--delay: 0">
     <div class="dashboard__title-group">
       <h1 class="app-title" [attr.data-month]="budget.selectedMonth()">
-        {{ budget.monthLabel().split(' ')[0] }}<span class="app-title__dot">.</span>
+        <ng-container *ngIf="view() === 'budget'; else walletTitle">
+          {{ budget.monthLabel().split(' ')[0] }}<span class="app-title__dot">.</span>
+        </ng-container>
+        <ng-template #walletTitle>Wallet<span class="app-title__dot">.</span></ng-template>
       </h1>
-      <p class="app-subtitle">Budget Planner</p>
+      <p class="app-subtitle">{{ view() === 'budget' ? 'Budget Planner' : 'Cards, debt & memberships' }}</p>
     </div>
 
-    <div class="stat-chip">
-      <span class="stat-chip__label">Left to Spend</span>
-      <span class="stat-chip__value" [class.negative]="budget.leftToSpend() < 0">
-        {{ budget.leftToSpend() | currency }}
-      </span>
-    </div>
-    <div class="stat-chip">
-      <span class="stat-chip__label">Days Left</span>
-      <span class="stat-chip__value">{{ budget.daysLeft() }}</span>
-    </div>
-
-    <div class="month-nav">
-      <button class="month-nav__btn" (click)="previousMonth()" title="Previous month">
-        <lucide-icon name="chevron-left" [size]="14"></lucide-icon>
+    <div class="view-tabs" role="tablist">
+      <button
+        type="button"
+        class="view-tabs__btn"
+        [class.active]="view() === 'budget'"
+        (click)="showBudget()"
+      >
+        <lucide-icon name="layout-dashboard" [size]="14"></lucide-icon>
+        Budget
       </button>
-      <div class="month-nav__label">
-        <lucide-icon name="calendar-days" [size]="13" style="color: var(--text-secondary)"></lucide-icon>
-        {{ budget.monthLabel() }}
+      <button
+        type="button"
+        class="view-tabs__btn"
+        [class.active]="view() === 'wallet'"
+        (click)="showWallet()"
+      >
+        <lucide-icon name="wallet" [size]="14"></lucide-icon>
+        Wallet
+      </button>
+    </div>
+
+    <ng-container *ngIf="view() === 'budget'">
+      <div class="stat-chip">
+        <span class="stat-chip__label">Left to Spend</span>
+        <span class="stat-chip__value" [class.negative]="budget.leftToSpend() < 0">
+          {{ budget.leftToSpend() | currency }}
+        </span>
       </div>
-      <button class="month-nav__btn" (click)="nextMonth()" title="Next month">
-        <lucide-icon name="chevron-right" [size]="14"></lucide-icon>
-      </button>
-      <button *ngIf="!budget.isCurrentMonth()" class="month-nav__today" (click)="jumpToToday()">Today</button>
-    </div>
+      <div class="stat-chip">
+        <span class="stat-chip__label">Days Left</span>
+        <span class="stat-chip__value">{{ budget.daysLeft() }}</span>
+      </div>
+
+      <div class="month-nav">
+        <button class="month-nav__btn" (click)="previousMonth()" title="Previous month">
+          <lucide-icon name="chevron-left" [size]="14"></lucide-icon>
+        </button>
+        <div class="month-nav__label">
+          <lucide-icon name="calendar-days" [size]="13" style="color: var(--text-secondary)"></lucide-icon>
+          {{ budget.monthLabel() }}
+        </div>
+        <button class="month-nav__btn" (click)="nextMonth()" title="Next month">
+          <lucide-icon name="chevron-right" [size]="14"></lucide-icon>
+        </button>
+        <button *ngIf="!budget.isCurrentMonth()" class="month-nav__today" (click)="jumpToToday()">Today</button>
+      </div>
+    </ng-container>
 
     <div class="account-chip">
       <span class="account-chip__name">{{ auth.user()?.displayName }}</span>
@@ -51,27 +77,33 @@
     </div>
   </header>
 
-  <section
-    class="dashboard__row dashboard__row--summary anim-enter"
-    style="--delay: 1"
-    [attr.data-month]="budget.selectedMonth()"
-  >
-    <app-cash-flow-summary></app-cash-flow-summary>
-    <app-group-totals-chart></app-group-totals-chart>
-    <app-allocation-donut></app-allocation-donut>
-  </section>
+  <ng-container *ngIf="view() === 'budget'">
+    <section
+      class="dashboard__row dashboard__row--summary anim-enter"
+      style="--delay: 1"
+      [attr.data-month]="budget.selectedMonth()"
+    >
+      <app-cash-flow-summary></app-cash-flow-summary>
+      <app-group-totals-chart></app-group-totals-chart>
+      <app-allocation-donut></app-allocation-donut>
+    </section>
 
-  <section
-    class="dashboard__tables anim-enter"
-    style="--delay: 2"
-    [attr.data-pulse]="monthMotion()"
-  >
-    <div class="dashboard__tables-side">
-      <app-category-table group="income"></app-category-table>
-      <app-category-table group="saving"></app-category-table>
-      <app-category-table group="debt"></app-category-table>
-    </div>
-    <app-category-table class="dashboard__table--tall" group="bills"></app-category-table>
-    <app-category-table class="dashboard__table--tall" group="expenses"></app-category-table>
+    <section
+      class="dashboard__tables anim-enter"
+      style="--delay: 2"
+      [attr.data-pulse]="monthMotion()"
+    >
+      <div class="dashboard__tables-side">
+        <app-category-table group="income"></app-category-table>
+        <app-category-table group="saving"></app-category-table>
+        <app-category-table group="debt"></app-category-table>
+      </div>
+      <app-category-table class="dashboard__table--tall" group="bills"></app-category-table>
+      <app-category-table class="dashboard__table--tall" group="expenses"></app-category-table>
+    </section>
+  </ng-container>
+
+  <section class="dashboard__wallet anim-enter" style="--delay: 1" *ngIf="view() === 'wallet'">
+    <app-wallet-board></app-wallet-board>
   </section>
 </div>

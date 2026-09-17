@@ -35,6 +35,8 @@ import {
   Repeat2,
   LogOut,
   UserPlus,
+  Ticket,
+  LayoutDashboard,
 } from 'lucide-angular';
 
 /** Central icon registry — pass to `LucideAngularModule.pick()` once at the app root. */
@@ -75,4 +77,6 @@ export const APP_ICONS = {
   Repeat2,
   LogOut,
   UserPlus,
+  Ticket,
+  LayoutDashboard,
 };
