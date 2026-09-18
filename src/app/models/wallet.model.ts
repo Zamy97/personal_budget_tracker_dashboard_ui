@@ -1,6 +1,6 @@
 export type AccountKind = 'CREDIT_CARD' | 'DEBT' | 'MEMBERSHIP';
 export type AccountStatus = 'ACTIVE' | 'PLANNED' | 'CLOSED';
-export type BenefitCadence = 'YEARLY' | 'ONCE';
+export type BenefitCadence = 'MONTHLY' | 'YEARLY' | 'ONCE';
 
 export interface AccountBenefit {
   id: string;
@@ -8,6 +8,8 @@ export interface AccountBenefit {
   amount: number | null;
   cadence: BenefitCadence;
   used: boolean;
+  /** YYYY-MM keys checked for MONTHLY benefits. */
+  usedMonths: string[];
   order: number;
 }
 
@@ -38,11 +40,13 @@ export interface WalletTabConfig {
   color: string;
 }
 
+export const MONTH_LABELS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'] as const;
+
 export const WALLET_TABS: WalletTabConfig[] = [
   {
     kind: 'CREDIT_CARD',
     label: 'Credit Cards',
-    hint: 'Track cards and check off annual credits so nothing expires unused',
+    hint: 'Check off monthly credits as you use them — Uber, entertainment, and more',
     icon: 'credit-card',
     color: '--expense',
   },
@@ -61,3 +65,17 @@ export const WALLET_TABS: WalletTabConfig[] = [
     color: '--warn',
   },
 ];
+
+export function yearMonthKey(year: number, monthIndex: number): string {
+  return `${year}-${String(monthIndex + 1).padStart(2, '0')}`;
+}
+
+export function normalizeCadence(raw: string | null | undefined): BenefitCadence {
+  if (raw === 'MONTHLY') {
+    return 'MONTHLY';
+  }
+  if (raw === 'ONCE') {
+    return 'ONCE';
+  }
+  return 'YEARLY';
+}

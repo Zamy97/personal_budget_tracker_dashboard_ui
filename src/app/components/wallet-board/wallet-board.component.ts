@@ -2,8 +2,15 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
-import { AccountKind, AccountStatus, TrackedAccount } from '../../models/wallet.model';
-import { WalletService } from '../../services/wallet.service';
+import {
+  AccountBenefit,
+  AccountKind,
+  AccountStatus,
+  MONTH_LABELS,
+  TrackedAccount,
+  yearMonthKey,
+} from '../../models/wallet.model';
+import { WalletService, benefitOpenValue, monthsUsedInYear } from '../../services/wallet.service';
 
 @Component({
   selector: 'app-wallet-board',
@@ -25,11 +32,17 @@ export class WalletBoardComponent {
   draftNotes = signal('');
   draftAccent = signal('');
   newBenefitLabel = signal<Record<string, string>>({});
+  newBenefitCadence = signal<Record<string, 'MONTHLY' | 'YEARLY'>>({});
+
+  monthLabels = MONTH_LABELS;
+  monthIndexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 
   activeTab = computed(() => this.wallet.tabs.find((t) => t.kind === this.wallet.selectedKind())!);
   items = this.wallet.accountsForSelected;
   totals = this.wallet.totals;
   editingId = this.wallet.editingId;
+  trackingYear = this.wallet.trackingYear;
+  currentMonthKey = yearMonthKey(new Date().getFullYear(), new Date().getMonth());
 
   selectTab(kind: AccountKind): void {
     this.wallet.selectKind(kind);
@@ -97,14 +110,46 @@ export class WalletBoardComponent {
   }
 
   benefitProgress(account: TrackedAccount): { done: number; total: number; leftValue: number } {
-    const total = account.benefits.length;
-    const done = account.benefits.filter((b) => b.used).length;
-    const leftValue = account.benefits.filter((b) => !b.used).reduce((sum, b) => sum + (b.amount ?? 0), 0);
+    const year = this.trackingYear();
+    let done = 0;
+    let total = 0;
+    let leftValue = 0;
+    for (const benefit of account.benefits) {
+      if (benefit.cadence === 'MONTHLY') {
+        const used = monthsUsedInYear(benefit, year);
+        done += used;
+        total += 12;
+        leftValue += benefitOpenValue(benefit, year);
+      } else {
+        total += 1;
+        if (benefit.used) {
+          done += 1;
+        } else {
+          leftValue += benefit.amount ?? 0;
+        }
+      }
+    }
     return { done, total, leftValue };
+  }
+
+  monthsUsed(benefit: AccountBenefit): number {
+    return monthsUsedInYear(benefit, this.trackingYear());
+  }
+
+  isMonthUsed(benefit: AccountBenefit, monthIndex: number): boolean {
+    return benefit.usedMonths.includes(yearMonthKey(this.trackingYear(), monthIndex));
+  }
+
+  monthKey(monthIndex: number): string {
+    return yearMonthKey(this.trackingYear(), monthIndex);
   }
 
   toggleBenefit(accountId: string, benefitId: string): void {
     this.wallet.toggleBenefit(accountId, benefitId);
+  }
+
+  toggleMonth(accountId: string, benefitId: string, monthIndex: number): void {
+    this.wallet.toggleBenefitMonth(accountId, benefitId, this.monthKey(monthIndex));
   }
 
   removeBenefit(accountId: string, benefitId: string): void {
@@ -123,6 +168,14 @@ export class WalletBoardComponent {
     return this.newBenefitLabel()[accountId] ?? '';
   }
 
+  setBenefitCadence(accountId: string, value: 'MONTHLY' | 'YEARLY'): void {
+    this.newBenefitCadence.update((map) => ({ ...map, [accountId]: value }));
+  }
+
+  benefitCadence(accountId: string): 'MONTHLY' | 'YEARLY' {
+    return this.newBenefitCadence()[accountId] ?? 'MONTHLY';
+  }
+
   addBenefit(accountId: string): void {
     const label = this.benefitDraft(accountId).trim();
     if (!label) {
@@ -131,8 +184,9 @@ export class WalletBoardComponent {
     this.wallet.addBenefit(accountId, {
       label,
       amount: null,
-      cadence: 'YEARLY',
+      cadence: this.benefitCadence(accountId),
       used: false,
+      usedMonths: [],
     });
     this.setBenefitDraft(accountId, '');
   }

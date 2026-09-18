@@ -1,5 +1,12 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
-import { AccountBenefit, AccountKind, TrackedAccount, WALLET_TABS } from '../models/wallet.model';
+import {
+  AccountBenefit,
+  AccountKind,
+  TrackedAccount,
+  WALLET_TABS,
+  normalizeCadence,
+  yearMonthKey,
+} from '../models/wallet.model';
 import { AuthService } from './auth.service';
 import {
   AccountBenefitDto,
@@ -14,8 +21,9 @@ function toBenefit(dto: AccountBenefitDto): AccountBenefit {
     id: String(dto.id),
     label: dto.label,
     amount: dto.amount ?? null,
-    cadence: dto.cadence === 'ONCE' ? 'ONCE' : 'YEARLY',
+    cadence: normalizeCadence(dto.cadence),
     used: !!dto.used,
+    usedMonths: [...(dto.usedMonths ?? [])],
     order: dto.order,
   };
 }
@@ -69,6 +77,26 @@ function toPayload(account: Omit<TrackedAccount, 'id' | 'order' | 'benefits'>): 
   };
 }
 
+function monthsUsedInYear(benefit: AccountBenefit, year: number): number {
+  const prefix = `${year}-`;
+  return benefit.usedMonths.filter((m) => m.startsWith(prefix)).length;
+}
+
+function benefitOpenValue(benefit: AccountBenefit, year: number): number {
+  if (benefit.cadence === 'MONTHLY') {
+    const left = 12 - monthsUsedInYear(benefit, year);
+    return left * (benefit.amount ?? 0);
+  }
+  return benefit.used ? 0 : benefit.amount ?? 0;
+}
+
+function benefitDone(benefit: AccountBenefit, year: number): boolean {
+  if (benefit.cadence === 'MONTHLY') {
+    return monthsUsedInYear(benefit, year) >= 12;
+  }
+  return benefit.used;
+}
+
 @Injectable({ providedIn: 'root' })
 export class WalletService {
   private readonly api = inject(WalletApiService);
@@ -78,6 +106,8 @@ export class WalletService {
   loaded = signal(false);
   selectedKind = signal<AccountKind>('CREDIT_CARD');
   editingId = signal<string | null>(null);
+  /** Calendar year used for monthly benefit grids. */
+  trackingYear = signal(new Date().getFullYear());
 
   tabs = WALLET_TABS;
 
@@ -100,20 +130,24 @@ export class WalletService {
   );
 
   totals = computed(() => {
+    const year = this.trackingYear();
     const list = this.accounts().filter((a) => a.status !== 'CLOSED');
     const allBenefits = list.flatMap((a) => a.benefits);
-    const openBenefits = allBenefits.filter((b) => !b.used);
-    const openValue = openBenefits.reduce((sum, b) => sum + (b.amount ?? 0), 0);
-    const cards = list.filter((a) => a.kind === 'CREDIT_CARD').length;
-    const memberships = list.filter((a) => a.kind === 'MEMBERSHIP').length;
-    const debts = list.filter((a) => a.kind === 'DEBT').length;
+    const openBenefits = allBenefits.filter((b) => !benefitDone(b, year));
+    const openValue = allBenefits.reduce((sum, b) => sum + benefitOpenValue(b, year), 0);
+    const monthChecksLeft = allBenefits
+      .filter((b) => b.cadence === 'MONTHLY')
+      .reduce((sum, b) => sum + (12 - monthsUsedInYear(b, year)), 0);
+    const monthChecksTotal = allBenefits.filter((b) => b.cadence === 'MONTHLY').length * 12;
     return {
       benefitsLeft: openBenefits.length,
       benefitsTotal: allBenefits.length,
       openCreditValue: openValue,
-      cardCount: cards,
-      debtCount: debts,
-      membershipCount: memberships,
+      monthChecksLeft,
+      monthChecksTotal,
+      cardCount: list.filter((a) => a.kind === 'CREDIT_CARD').length,
+      debtCount: list.filter((a) => a.kind === 'DEBT').length,
+      membershipCount: list.filter((a) => a.kind === 'MEMBERSHIP').length,
       plannedCount: list.filter((a) => a.status === 'PLANNED').length,
     };
   });
@@ -205,11 +239,39 @@ export class WalletService {
       }),
     );
     this.api.toggleBenefit(Number(benefitId)).subscribe({
-      next: (dto) => {
-        this.patchBenefit(accountId, toBenefit(dto));
-      },
+      next: (dto) => this.patchBenefit(accountId, toBenefit(dto)),
       error: (err) => {
         console.error('Failed to toggle benefit', err);
+        this.reload();
+      },
+    });
+  }
+
+  toggleBenefitMonth(accountId: string, benefitId: string, yearMonth: string): void {
+    this.accounts.update((list) =>
+      list.map((account) => {
+        if (account.id !== accountId) {
+          return account;
+        }
+        return {
+          ...account,
+          benefits: account.benefits.map((b) => {
+            if (b.id !== benefitId) {
+              return b;
+            }
+            const has = b.usedMonths.includes(yearMonth);
+            const usedMonths = has
+              ? b.usedMonths.filter((m) => m !== yearMonth)
+              : [...b.usedMonths, yearMonth].sort();
+            return { ...b, usedMonths };
+          }),
+        };
+      }),
+    );
+    this.api.toggleBenefitMonth(Number(benefitId), yearMonth).subscribe({
+      next: (dto) => this.patchBenefit(accountId, toBenefit(dto)),
+      error: (err) => {
+        console.error('Failed to toggle benefit month', err);
         this.reload();
       },
     });
@@ -271,3 +333,5 @@ export class WalletService {
     );
   }
 }
+
+export { monthsUsedInYear, benefitOpenValue, yearMonthKey };

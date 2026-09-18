@@ -1,14 +1,14 @@
 <div class="wallet anim-enter">
   <div class="wallet__summary">
     <div class="wallet-stat">
-      <span class="wallet-stat__label">Benefits left</span>
-      <strong>{{ totals().benefitsLeft }}<span class="wallet-stat__of">/{{ totals().benefitsTotal }}</span></strong>
-      <small *ngIf="totals().openCreditValue">~{{ totals().openCreditValue | currency }} still available</small>
+      <span class="wallet-stat__label">Month checks left</span>
+      <strong>{{ totals().monthChecksLeft }}<span class="wallet-stat__of">/{{ totals().monthChecksTotal || 0 }}</span></strong>
+      <small *ngIf="totals().openCreditValue">~{{ totals().openCreditValue | currency }} still available in {{ trackingYear() }}</small>
     </div>
     <div class="wallet-stat">
-      <span class="wallet-stat__label">Cards tracked</span>
-      <strong>{{ totals().cardCount }}</strong>
-      <small *ngIf="totals().plannedCount">{{ totals().plannedCount }} planned</small>
+      <span class="wallet-stat__label">Benefits open</span>
+      <strong>{{ totals().benefitsLeft }}<span class="wallet-stat__of">/{{ totals().benefitsTotal }}</span></strong>
+      <small>{{ totals().cardCount }} cards tracked</small>
     </div>
     <div class="wallet-stat">
       <span class="wallet-stat__label">Memberships & debt</span>
@@ -38,7 +38,7 @@
     </button>
   </div>
 
-  <p class="wallet__hint">{{ activeTab().hint }}</p>
+  <p class="wallet__hint">{{ activeTab().hint }} · tracking {{ trackingYear() }}</p>
 
   <div class="wallet-grid" *ngIf="items().length > 0 || editingId() === 'new'; else empty">
     <article
@@ -58,7 +58,7 @@
 
       <div class="account-card__progress" *ngIf="item.benefits.length; else noBenefits">
         <div class="account-card__progress-row">
-          <span>Benefits used</span>
+          <span>Used this year</span>
           <strong>{{ benefitProgress(item).done }}/{{ benefitProgress(item).total }}</strong>
         </div>
         <div class="account-card__meter-track">
@@ -72,14 +72,14 @@
           ></div>
         </div>
         <span class="account-card__progress-hint" *ngIf="benefitProgress(item).leftValue">
-          {{ benefitProgress(item).leftValue | currency }} in unused credits
+          ~{{ benefitProgress(item).leftValue | currency }} still on the table
         </span>
       </div>
       <ng-template #noBenefits>
         <p class="account-card__tracker-note">
           {{
             wallet.selectedKind() === 'CREDIT_CARD'
-              ? 'Add benefit reminders below so annual credits don’t slip.'
+              ? 'Add monthly benefit reminders so credits don’t slip month to month.'
               : 'Tracked for visibility — no balance entry needed.'
           }}
         </p>
@@ -108,33 +108,70 @@
         <li
           class="benefit-list__item"
           *ngFor="let benefit of item.benefits"
-          [class.benefit-list__item--used]="benefit.used"
+          [class.benefit-list__item--used]="benefit.cadence !== 'MONTHLY' && benefit.used"
+          [class.benefit-list__item--monthly]="benefit.cadence === 'MONTHLY'"
         >
-          <button
-            type="button"
-            class="benefit-list__check"
-            [attr.aria-pressed]="benefit.used"
-            [attr.aria-label]="(benefit.used ? 'Mark unused: ' : 'Mark used: ') + benefit.label"
-            (click)="toggleBenefit(item.id, benefit.id)"
-          >
-            <lucide-icon *ngIf="benefit.used" name="check" [size]="12"></lucide-icon>
-          </button>
-          <div class="benefit-list__body">
-            <span class="benefit-list__label">{{ benefit.label }}</span>
-            <span class="benefit-list__meta">
-              <ng-container *ngIf="benefit.amount != null">{{ benefit.amount | currency }}</ng-container>
-              <ng-container *ngIf="benefit.amount != null"> · </ng-container>
-              {{ benefit.cadence === 'ONCE' ? 'One-time' : 'Yearly' }}
-            </span>
-          </div>
-          <button
-            type="button"
-            class="benefit-list__remove"
-            title="Remove"
-            (click)="removeBenefit(item.id, benefit.id)"
-          >
-            <lucide-icon name="x" [size]="12"></lucide-icon>
-          </button>
+          <ng-container *ngIf="benefit.cadence === 'MONTHLY'; else yearlyRow">
+            <div class="benefit-list__body benefit-list__body--full">
+              <div class="benefit-list__heading">
+                <span class="benefit-list__label">{{ benefit.label }}</span>
+                <button
+                  type="button"
+                  class="benefit-list__remove"
+                  title="Remove"
+                  (click)="removeBenefit(item.id, benefit.id)"
+                >
+                  <lucide-icon name="x" [size]="12"></lucide-icon>
+                </button>
+              </div>
+              <span class="benefit-list__meta">
+                <ng-container *ngIf="benefit.amount != null">{{ benefit.amount | currency }}/mo · </ng-container>
+                {{ monthsUsed(benefit) }}/12 months in {{ trackingYear() }}
+              </span>
+              <div class="month-grid" role="group" [attr.aria-label]="benefit.label + ' months'">
+                <button
+                  type="button"
+                  class="month-grid__cell"
+                  *ngFor="let m of monthIndexes"
+                  [class.month-grid__cell--used]="isMonthUsed(benefit, m)"
+                  [class.month-grid__cell--current]="monthKey(m) === currentMonthKey"
+                  [attr.aria-pressed]="isMonthUsed(benefit, m)"
+                  [attr.title]="monthKey(m)"
+                  (click)="toggleMonth(item.id, benefit.id, m)"
+                >
+                  {{ monthLabels[m] }}
+                </button>
+              </div>
+            </div>
+          </ng-container>
+
+          <ng-template #yearlyRow>
+            <button
+              type="button"
+              class="benefit-list__check"
+              [attr.aria-pressed]="benefit.used"
+              [attr.aria-label]="(benefit.used ? 'Mark unused: ' : 'Mark used: ') + benefit.label"
+              (click)="toggleBenefit(item.id, benefit.id)"
+            >
+              <lucide-icon *ngIf="benefit.used" name="check" [size]="12"></lucide-icon>
+            </button>
+            <div class="benefit-list__body">
+              <span class="benefit-list__label">{{ benefit.label }}</span>
+              <span class="benefit-list__meta">
+                <ng-container *ngIf="benefit.amount != null">{{ benefit.amount | currency }}</ng-container>
+                <ng-container *ngIf="benefit.amount != null"> · </ng-container>
+                {{ benefit.cadence === 'ONCE' ? 'One-time' : 'Yearly' }}
+              </span>
+            </div>
+            <button
+              type="button"
+              class="benefit-list__remove"
+              title="Remove"
+              (click)="removeBenefit(item.id, benefit.id)"
+            >
+              <lucide-icon name="x" [size]="12"></lucide-icon>
+            </button>
+          </ng-template>
         </li>
       </ul>
 
@@ -147,6 +184,15 @@
           placeholder="Add a benefit reminder…"
           maxlength="160"
         />
+        <select
+          [ngModel]="benefitCadence(item.id)"
+          (ngModelChange)="setBenefitCadence(item.id, $event)"
+          [name]="'cadence-' + item.id"
+          title="Cadence"
+        >
+          <option value="MONTHLY">Monthly</option>
+          <option value="YEARLY">Yearly</option>
+        </select>
         <button type="submit" [disabled]="!benefitDraft(item.id).trim()">
           <lucide-icon name="plus" [size]="13"></lucide-icon>
         </button>
@@ -161,9 +207,9 @@
           class="ghost"
           *ngIf="item.benefits.length"
           (click)="resetYearly(item.id)"
-          title="Uncheck all yearly benefits"
+          title="Clear this year’s monthly checks and yearly boxes"
         >
-          New year
+          Reset {{ trackingYear() }}
         </button>
         <button type="button" class="danger" (click)="remove(item.id)">Remove</button>
       </footer>

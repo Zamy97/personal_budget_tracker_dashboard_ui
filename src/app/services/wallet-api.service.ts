@@ -10,6 +10,7 @@ export interface AccountBenefitDto {
   amount: number | null;
   cadence: BenefitCadence;
   used: boolean;
+  usedMonths?: string[];
   order: number;
 }
 
@@ -39,6 +40,7 @@ export interface AccountBenefitPayload {
   amount: number | null;
   cadence: BenefitCadence;
   used: boolean;
+  usedMonths?: string[];
 }
 
 const BASE_URL = `${environment.apiBaseUrl.replace(/\/$/, '')}/api/wallet`;
@@ -73,6 +75,10 @@ export class WalletApiService {
 
   toggleBenefit(benefitId: number): Observable<AccountBenefitDto> {
     return this.http.post<AccountBenefitDto>(`${BASE_URL}/benefits/${benefitId}/toggle`, {});
+  }
+
+  toggleBenefitMonth(benefitId: number, yearMonth: string): Observable<AccountBenefitDto> {
+    return this.http.post<AccountBenefitDto>(`${BASE_URL}/benefits/${benefitId}/toggle-month`, { yearMonth });
   }
 
   resetYearlyBenefits(accountId: number): Observable<AccountBenefitDto[]> {
