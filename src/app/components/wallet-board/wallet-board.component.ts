@@ -33,6 +33,8 @@ export class WalletBoardComponent {
   draftAccent = signal('');
   newBenefitLabel = signal<Record<string, string>>({});
   newBenefitCadence = signal<Record<string, 'MONTHLY' | 'YEARLY'>>({});
+  /** When true for an account id, completed benefits stay visible so they can be unchecked. */
+  showCompleted = signal<Record<string, boolean>>({});
 
   monthLabels = MONTH_LABELS;
   monthIndexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
@@ -43,6 +45,9 @@ export class WalletBoardComponent {
   editingId = this.wallet.editingId;
   trackingYear = this.wallet.trackingYear;
   currentMonthKey = yearMonthKey(new Date().getFullYear(), new Date().getMonth());
+
+  trackAccount = (_: number, account: TrackedAccount): string => account.id;
+  trackBenefit = (_: number, benefit: AccountBenefit): string => benefit.id;
 
   selectTab(kind: AccountKind): void {
     this.wallet.selectKind(kind);
@@ -132,6 +137,28 @@ export class WalletBoardComponent {
     return { done, total, leftValue };
   }
 
+  isBenefitComplete(benefit: AccountBenefit): boolean {
+    if (benefit.cadence === 'MONTHLY') {
+      return monthsUsedInYear(benefit, this.trackingYear()) >= 12;
+    }
+    return benefit.used;
+  }
+
+  visibleBenefits(account: TrackedAccount): AccountBenefit[] {
+    if (this.showCompleted()[account.id]) {
+      return account.benefits;
+    }
+    return account.benefits.filter((b) => !this.isBenefitComplete(b));
+  }
+
+  completedCount(account: TrackedAccount): number {
+    return account.benefits.filter((b) => this.isBenefitComplete(b)).length;
+  }
+
+  toggleShowCompleted(accountId: string): void {
+    this.showCompleted.update((map) => ({ ...map, [accountId]: !map[accountId] }));
+  }
+
   monthsUsed(benefit: AccountBenefit): number {
     return monthsUsedInYear(benefit, this.trackingYear());
   }
@@ -144,11 +171,13 @@ export class WalletBoardComponent {
     return yearMonthKey(this.trackingYear(), monthIndex);
   }
 
-  toggleBenefit(accountId: string, benefitId: string): void {
+  toggleBenefit(accountId: string, benefitId: string, event?: Event): void {
+    event?.preventDefault();
     this.wallet.toggleBenefit(accountId, benefitId);
   }
 
-  toggleMonth(accountId: string, benefitId: string, monthIndex: number): void {
+  toggleMonth(accountId: string, benefitId: string, monthIndex: number, event?: Event): void {
+    event?.preventDefault();
     this.wallet.toggleBenefitMonth(accountId, benefitId, this.monthKey(monthIndex));
   }
 

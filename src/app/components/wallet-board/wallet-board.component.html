@@ -43,7 +43,7 @@
   <div class="wallet-grid" *ngIf="items().length > 0 || editingId() === 'new'; else empty">
     <article
       class="account-card"
-      *ngFor="let item of items()"
+      *ngFor="let item of items(); trackBy: trackAccount"
       [class.account-card--planned]="item.status === 'PLANNED'"
       [class.account-card--closed]="item.status === 'CLOSED'"
       [style.--card-accent]="item.accent || 'var(--income)'"
@@ -104,12 +104,13 @@
         </div>
       </dl>
 
-      <ul class="benefit-list" *ngIf="item.benefits.length">
+      <ul class="benefit-list" *ngIf="visibleBenefits(item).length || completedCount(item)">
         <li
           class="benefit-list__item"
-          *ngFor="let benefit of item.benefits"
+          *ngFor="let benefit of visibleBenefits(item); trackBy: trackBenefit"
           [class.benefit-list__item--used]="benefit.cadence !== 'MONTHLY' && benefit.used"
           [class.benefit-list__item--monthly]="benefit.cadence === 'MONTHLY'"
+          [class.benefit-list__item--complete]="isBenefitComplete(benefit)"
         >
           <ng-container *ngIf="benefit.cadence === 'MONTHLY'; else yearlyRow">
             <div class="benefit-list__body benefit-list__body--full">
@@ -121,7 +122,7 @@
                   title="Remove"
                   (click)="removeBenefit(item.id, benefit.id)"
                 >
-                  <lucide-icon name="x" [size]="12"></lucide-icon>
+                  <lucide-icon name="x" [size]="14"></lucide-icon>
                 </button>
               </div>
               <span class="benefit-list__meta">
@@ -137,7 +138,8 @@
                   [class.month-grid__cell--current]="monthKey(m) === currentMonthKey"
                   [attr.aria-pressed]="isMonthUsed(benefit, m)"
                   [attr.title]="monthKey(m)"
-                  (click)="toggleMonth(item.id, benefit.id, m)"
+                  (mousedown)="$event.preventDefault()"
+                  (click)="toggleMonth(item.id, benefit.id, m, $event)"
                 >
                   {{ monthLabels[m] }}
                 </button>
@@ -151,9 +153,10 @@
               class="benefit-list__check"
               [attr.aria-pressed]="benefit.used"
               [attr.aria-label]="(benefit.used ? 'Mark unused: ' : 'Mark used: ') + benefit.label"
-              (click)="toggleBenefit(item.id, benefit.id)"
+              (mousedown)="$event.preventDefault()"
+              (click)="toggleBenefit(item.id, benefit.id, $event)"
             >
-              <lucide-icon *ngIf="benefit.used" name="check" [size]="12"></lucide-icon>
+              <lucide-icon *ngIf="benefit.used" name="check" [size]="14"></lucide-icon>
             </button>
             <div class="benefit-list__body">
               <span class="benefit-list__label">{{ benefit.label }}</span>
@@ -169,9 +172,16 @@
               title="Remove"
               (click)="removeBenefit(item.id, benefit.id)"
             >
-              <lucide-icon name="x" [size]="12"></lucide-icon>
+              <lucide-icon name="x" [size]="14"></lucide-icon>
             </button>
           </ng-template>
+        </li>
+
+        <li class="benefit-list__completed-toggle" *ngIf="completedCount(item)">
+          <button type="button" (click)="toggleShowCompleted(item.id)">
+            {{ showCompleted()[item.id] ? 'Hide' : 'Show' }}
+            {{ completedCount(item) }} completed
+          </button>
         </li>
       </ul>
 
