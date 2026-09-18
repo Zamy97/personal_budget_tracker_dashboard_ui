@@ -1,44 +1,41 @@
-<div class="wallet anim-enter">
-  <div class="wallet__summary">
-    <div class="wallet-stat">
-      <span class="wallet-stat__label">Month checks left</span>
-      <strong>{{ totals().monthChecksLeft }}<span class="wallet-stat__of">/{{ totals().monthChecksTotal || 0 }}</span></strong>
-      <small *ngIf="totals().openCreditValue">~{{ totals().openCreditValue | currency }} still available in {{ trackingYear() }}</small>
+<div class="wallet">
+  <div class="wallet__chrome">
+    <div class="wallet__summary">
+      <div class="wallet-stat">
+        <span class="wallet-stat__label">Month checks left</span>
+        <strong>{{ totals().monthChecksLeft }}<span class="wallet-stat__of">/{{ totals().monthChecksTotal || 0 }}</span></strong>
+      </div>
+      <div class="wallet-stat">
+        <span class="wallet-stat__label">Benefits open</span>
+        <strong>{{ totals().benefitsLeft }}<span class="wallet-stat__of">/{{ totals().benefitsTotal }}</span></strong>
+      </div>
+      <div class="wallet-stat">
+        <span class="wallet-stat__label">Memberships & debt</span>
+        <strong>{{ totals().membershipCount + totals().debtCount }}</strong>
+      </div>
     </div>
-    <div class="wallet-stat">
-      <span class="wallet-stat__label">Benefits open</span>
-      <strong>{{ totals().benefitsLeft }}<span class="wallet-stat__of">/{{ totals().benefitsTotal }}</span></strong>
-      <small>{{ totals().cardCount }} cards tracked</small>
-    </div>
-    <div class="wallet-stat">
-      <span class="wallet-stat__label">Memberships & debt</span>
-      <strong>{{ totals().membershipCount + totals().debtCount }}</strong>
-      <small>{{ totals().membershipCount }} memberships · {{ totals().debtCount }} debt</small>
-    </div>
-  </div>
 
-  <div class="wallet__toolbar">
-    <div class="wallet-tabs" role="tablist">
-      <button
-        type="button"
-        class="wallet-tabs__btn"
-        *ngFor="let tab of wallet.tabs"
-        role="tab"
-        [class.active]="wallet.selectedKind() === tab.kind"
-        (click)="selectTab(tab.kind)"
-      >
-        <lucide-icon [name]="tab.icon" [size]="14"></lucide-icon>
-        {{ tab.label }}
+    <div class="wallet__toolbar">
+      <div class="wallet-tabs" role="tablist">
+        <button
+          type="button"
+          class="wallet-tabs__btn"
+          *ngFor="let tab of wallet.tabs"
+          role="tab"
+          [class.active]="wallet.selectedKind() === tab.kind"
+          (click)="selectTab(tab.kind)"
+        >
+          <lucide-icon [name]="tab.icon" [size]="14"></lucide-icon>
+          {{ tab.label }}
+        </button>
+      </div>
+
+      <button type="button" class="wallet__add" (click)="beginCreate()">
+        <lucide-icon name="plus" [size]="14"></lucide-icon>
+        Add
       </button>
     </div>
-
-    <button type="button" class="wallet__add" (click)="beginCreate()">
-      <lucide-icon name="plus" [size]="14"></lucide-icon>
-      Add {{ activeTab().label.replace(' & Debt', '').replace('Credit ', '') }}
-    </button>
   </div>
-
-  <p class="wallet__hint">{{ activeTab().hint }} · tracking {{ trackingYear() }}</p>
 
   <div class="wallet-grid" *ngIf="items().length > 0 || editingId() === 'new'; else empty">
     <article
