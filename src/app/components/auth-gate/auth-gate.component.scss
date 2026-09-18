@@ -4,6 +4,7 @@
 }
 
 .gate {
+  position: relative;
   height: 100%;
   display: flex;
   align-items: center;
@@ -16,6 +17,55 @@
   padding: 2rem 1.6rem 1.6rem;
   text-align: center;
   animation: popIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
+.gate__card--busy {
+  filter: blur(2px) saturate(0.85);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.gate__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(10, 13, 18, 0.42);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: fadeIn 0.28s ease both;
+}
+
+.gate__overlay-card {
+  width: min(100%, 18rem);
+  padding: 1.75rem 1.4rem 1.5rem;
+  text-align: center;
+  animation: popIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.gate__overlay-title {
+  margin: 1.1rem 0 0;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.gate__overlay-sub {
+  margin: 0.45rem 0 0;
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  animation: authShimmer 1.8s ease-in-out infinite;
+}
+
+.gate__overlay-sub--slow {
+  color: var(--warn);
+  animation: fadeInUp 0.3s ease both;
 }
 
 .gate__icon {
@@ -72,13 +122,18 @@
   transition: background 0.18s ease, color 0.18s ease;
 }
 
-.gate__tabs button:hover {
+.gate__tabs button:hover:not(:disabled) {
   color: var(--text-primary);
 }
 
 .gate__tabs button.active {
   background: rgba(255, 255, 255, 0.08);
   color: var(--text-primary);
+}
+
+.gate__tabs button:disabled {
+  cursor: default;
+  opacity: 0.7;
 }
 
 .gate__field {

@@ -2,7 +2,16 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { AccountKind, AccountStatus } from '../models/wallet.model';
+import { AccountKind, AccountStatus, BenefitCadence } from '../models/wallet.model';
+
+export interface AccountBenefitDto {
+  id: number;
+  label: string;
+  amount: number | null;
+  cadence: BenefitCadence;
+  used: boolean;
+  order: number;
+}
 
 export interface TrackedAccountDto {
   id: number;
@@ -20,9 +29,17 @@ export interface TrackedAccountDto {
   accent: string;
   notes: string;
   order: number;
+  benefits?: AccountBenefitDto[];
 }
 
-export type TrackedAccountPayload = Omit<TrackedAccountDto, 'id' | 'order'>;
+export type TrackedAccountPayload = Omit<TrackedAccountDto, 'id' | 'order' | 'benefits'>;
+
+export interface AccountBenefitPayload {
+  label: string;
+  amount: number | null;
+  cadence: BenefitCadence;
+  used: boolean;
+}
 
 const BASE_URL = `${environment.apiBaseUrl.replace(/\/$/, '')}/api/wallet`;
 
@@ -48,5 +65,21 @@ export class WalletApiService {
 
   deleteAccount(id: number): Observable<void> {
     return this.http.delete<void>(`${BASE_URL}/accounts/${id}`);
+  }
+
+  addBenefit(accountId: number, payload: AccountBenefitPayload): Observable<AccountBenefitDto> {
+    return this.http.post<AccountBenefitDto>(`${BASE_URL}/accounts/${accountId}/benefits`, payload);
+  }
+
+  toggleBenefit(benefitId: number): Observable<AccountBenefitDto> {
+    return this.http.post<AccountBenefitDto>(`${BASE_URL}/benefits/${benefitId}/toggle`, {});
+  }
+
+  resetYearlyBenefits(accountId: number): Observable<AccountBenefitDto[]> {
+    return this.http.post<AccountBenefitDto[]>(`${BASE_URL}/accounts/${accountId}/benefits/reset-yearly`, {});
+  }
+
+  deleteBenefit(benefitId: number): Observable<void> {
+    return this.http.delete<void>(`${BASE_URL}/benefits/${benefitId}`);
   }
 }

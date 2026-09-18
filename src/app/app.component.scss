@@ -8,12 +8,33 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
+  padding: 1.5rem;
 }
 
-.boot__pulse {
-  animation: softPulse 1.6s ease-in-out infinite;
+.boot__card {
+  width: min(100%, 18rem);
+  padding: 1.75rem 1.4rem 1.5rem;
+  text-align: center;
+  animation: popIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.boot__title {
+  margin: 1.1rem 0 0;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.boot__title span {
+  color: var(--income);
+}
+
+.boot__sub {
+  margin: 0.4rem 0 0;
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  animation: authShimmer 1.8s ease-in-out infinite;
 }
 
 .dashboard {

@@ -42,6 +42,12 @@
   font-variant-numeric: tabular-nums;
 }
 
+.wallet-stat__of {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
 .wallet-stat small {
   color: var(--text-secondary);
   font-size: 0.72rem;
@@ -88,7 +94,8 @@
 .wallet__add,
 .wallet-empty button,
 .editor-actions button,
-.account-card__actions button {
+.account-card__actions button,
+.benefit-add button {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
@@ -111,7 +118,7 @@
 
 .wallet-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(16.5rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
   gap: 0.75rem;
   align-content: start;
 }
@@ -171,26 +178,36 @@
   letter-spacing: 0.04em;
 }
 
-.account-card__balance {
+.account-card__progress {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.3rem;
 }
 
-.account-card__balance span {
+.account-card__progress-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
   font-size: 0.68rem;
   color: var(--text-muted);
 }
 
-.account-card__balance strong {
-  font-size: 1.35rem;
+.account-card__progress-row strong {
+  color: var(--text-primary);
+  font-size: 0.95rem;
   font-variant-numeric: tabular-nums;
 }
 
-.account-card__meter {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+.account-card__progress-hint {
+  font-size: 0.68rem;
+  color: var(--warn);
+}
+
+.account-card__tracker-note {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
 }
 
 .account-card__meter-track {
@@ -205,11 +222,6 @@
   border-radius: 999px;
   background: var(--card-accent);
   transition: width 0.4s ease;
-}
-
-.account-card__meter span {
-  font-size: 0.68rem;
-  color: var(--text-secondary);
 }
 
 .account-card__meta {
@@ -238,6 +250,116 @@
   font-variant-numeric: tabular-nums;
 }
 
+.benefit-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 14rem;
+  overflow: auto;
+}
+
+.benefit-list__item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.45rem;
+  align-items: start;
+  padding: 0.4rem 0.45rem;
+  border-radius: 0.55rem;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid transparent;
+  transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+
+.benefit-list__item--used {
+  opacity: 0.55;
+}
+
+.benefit-list__item--used .benefit-list__label {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.benefit-list__check {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.1rem;
+  border-radius: 0.35rem;
+  border: 1px solid var(--glass-border-strong);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--income);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.benefit-list__item--used .benefit-list__check {
+  background: var(--income-dim);
+  border-color: rgba(0, 217, 126, 0.45);
+}
+
+.benefit-list__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.benefit-list__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.benefit-list__meta {
+  font-size: 0.64rem;
+  color: var(--text-muted);
+}
+
+.benefit-list__remove {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 0.15rem;
+  cursor: pointer;
+  border-radius: 0.35rem;
+}
+
+.benefit-list__remove:hover {
+  color: var(--expense);
+  background: var(--expense-dim);
+}
+
+.benefit-add {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.35rem;
+}
+
+.benefit-add input {
+  width: 100%;
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.76rem;
+}
+
+.benefit-add button {
+  padding: 0.45rem 0.55rem;
+}
+
+.benefit-add button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .account-card__notes {
   margin: 0;
   font-size: 0.72rem;
@@ -247,11 +369,13 @@
 .account-card__actions {
   margin-top: auto;
   display: flex;
+  flex-wrap: wrap;
   gap: 0.4rem;
 }
 
 .account-card__actions button,
-.editor-actions .ghost {
+.editor-actions .ghost,
+.account-card__actions .ghost {
   background: rgba(255, 255, 255, 0.06);
   color: var(--text-secondary);
   border: 1px solid var(--glass-border);

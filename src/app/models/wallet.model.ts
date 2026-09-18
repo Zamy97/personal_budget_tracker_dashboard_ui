@@ -1,5 +1,15 @@
 export type AccountKind = 'CREDIT_CARD' | 'DEBT' | 'MEMBERSHIP';
 export type AccountStatus = 'ACTIVE' | 'PLANNED' | 'CLOSED';
+export type BenefitCadence = 'YEARLY' | 'ONCE';
+
+export interface AccountBenefit {
+  id: string;
+  label: string;
+  amount: number | null;
+  cadence: BenefitCadence;
+  used: boolean;
+  order: number;
+}
 
 export interface TrackedAccount {
   id: string;
@@ -17,6 +27,7 @@ export interface TrackedAccount {
   accent: string;
   notes: string;
   order: number;
+  benefits: AccountBenefit[];
 }
 
 export interface WalletTabConfig {
@@ -31,21 +42,21 @@ export const WALLET_TABS: WalletTabConfig[] = [
   {
     kind: 'CREDIT_CARD',
     label: 'Credit Cards',
-    hint: 'Balances, limits, and annual fees',
+    hint: 'Track cards and check off annual credits so nothing expires unused',
     icon: 'credit-card',
     color: '--expense',
   },
   {
     kind: 'DEBT',
     label: 'Mortgages & Debt',
-    hint: 'Mortgages, loans, and payoffs',
+    hint: 'Keep mortgages and loans visible without juggling balances here',
     icon: 'landmark',
     color: '--info',
   },
   {
     kind: 'MEMBERSHIP',
     label: 'Memberships',
-    hint: 'Clubs, subscriptions, and renewals',
+    hint: 'Clubs and subscriptions — renewals and what you get for the fee',
     icon: 'ticket',
     color: '--warn',
   },

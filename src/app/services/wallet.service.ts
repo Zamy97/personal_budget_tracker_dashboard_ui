@@ -1,7 +1,24 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
-import { AccountKind, TrackedAccount, WALLET_TABS } from '../models/wallet.model';
+import { AccountBenefit, AccountKind, TrackedAccount, WALLET_TABS } from '../models/wallet.model';
 import { AuthService } from './auth.service';
-import { TrackedAccountDto, TrackedAccountPayload, WalletApiService } from './wallet-api.service';
+import {
+  AccountBenefitDto,
+  AccountBenefitPayload,
+  TrackedAccountDto,
+  TrackedAccountPayload,
+  WalletApiService,
+} from './wallet-api.service';
+
+function toBenefit(dto: AccountBenefitDto): AccountBenefit {
+  return {
+    id: String(dto.id),
+    label: dto.label,
+    amount: dto.amount ?? null,
+    cadence: dto.cadence === 'ONCE' ? 'ONCE' : 'YEARLY',
+    used: !!dto.used,
+    order: dto.order,
+  };
+}
 
 function toAccount(dto: TrackedAccountDto): TrackedAccount {
   return {
@@ -20,6 +37,7 @@ function toAccount(dto: TrackedAccountDto): TrackedAccount {
     accent: dto.accent || defaultAccent(dto.kind),
     notes: dto.notes ?? '',
     order: dto.order,
+    benefits: (dto.benefits ?? []).map(toBenefit).sort((a, b) => a.order - b.order),
   };
 }
 
@@ -33,7 +51,7 @@ function defaultAccent(kind: AccountKind): string {
   return '#f5a623';
 }
 
-function toPayload(account: Omit<TrackedAccount, 'id' | 'order'>): TrackedAccountPayload {
+function toPayload(account: Omit<TrackedAccount, 'id' | 'order' | 'benefits'>): TrackedAccountPayload {
   return {
     kind: account.kind,
     name: account.name,
@@ -83,15 +101,19 @@ export class WalletService {
 
   totals = computed(() => {
     const list = this.accounts().filter((a) => a.status !== 'CLOSED');
-    const cards = list.filter((a) => a.kind === 'CREDIT_CARD');
-    const debts = list.filter((a) => a.kind === 'DEBT');
-    const memberships = list.filter((a) => a.kind === 'MEMBERSHIP');
+    const allBenefits = list.flatMap((a) => a.benefits);
+    const openBenefits = allBenefits.filter((b) => !b.used);
+    const openValue = openBenefits.reduce((sum, b) => sum + (b.amount ?? 0), 0);
+    const cards = list.filter((a) => a.kind === 'CREDIT_CARD').length;
+    const memberships = list.filter((a) => a.kind === 'MEMBERSHIP').length;
+    const debts = list.filter((a) => a.kind === 'DEBT').length;
     return {
-      cardBalance: cards.reduce((sum, a) => sum + a.balance, 0),
-      cardLimit: cards.reduce((sum, a) => sum + (a.creditLimit ?? 0), 0),
-      debtBalance: debts.reduce((sum, a) => sum + a.balance, 0),
-      debtPayment: debts.reduce((sum, a) => sum + (a.monthlyPayment ?? 0), 0),
-      membershipFees: memberships.reduce((sum, a) => sum + (a.annualFee ?? 0), 0),
+      benefitsLeft: openBenefits.length,
+      benefitsTotal: allBenefits.length,
+      openCreditValue: openValue,
+      cardCount: cards,
+      debtCount: debts,
+      membershipCount: memberships,
       plannedCount: list.filter((a) => a.status === 'PLANNED').length,
     };
   });
@@ -139,7 +161,7 @@ export class WalletService {
     this.editingId.set(null);
   }
 
-  saveNew(draft: Omit<TrackedAccount, 'id' | 'order'>): void {
+  saveNew(draft: Omit<TrackedAccount, 'id' | 'order' | 'benefits'>): void {
     this.api.createAccount(toPayload(draft)).subscribe({
       next: (dto) => {
         this.accounts.update((list) => [...list, toAccount(dto)]);
@@ -168,5 +190,84 @@ export class WalletService {
     this.api.deleteAccount(Number(id)).subscribe({
       error: (err) => console.error('Failed to delete account', err),
     });
+  }
+
+  toggleBenefit(accountId: string, benefitId: string): void {
+    this.accounts.update((list) =>
+      list.map((account) => {
+        if (account.id !== accountId) {
+          return account;
+        }
+        return {
+          ...account,
+          benefits: account.benefits.map((b) => (b.id === benefitId ? { ...b, used: !b.used } : b)),
+        };
+      }),
+    );
+    this.api.toggleBenefit(Number(benefitId)).subscribe({
+      next: (dto) => {
+        this.patchBenefit(accountId, toBenefit(dto));
+      },
+      error: (err) => {
+        console.error('Failed to toggle benefit', err);
+        this.reload();
+      },
+    });
+  }
+
+  addBenefit(accountId: string, payload: AccountBenefitPayload): void {
+    this.api.addBenefit(Number(accountId), payload).subscribe({
+      next: (dto) => {
+        const benefit = toBenefit(dto);
+        this.accounts.update((list) =>
+          list.map((account) =>
+            account.id === accountId ? { ...account, benefits: [...account.benefits, benefit] } : account,
+          ),
+        );
+      },
+      error: (err) => console.error('Failed to add benefit', err),
+    });
+  }
+
+  removeBenefit(accountId: string, benefitId: string): void {
+    this.accounts.update((list) =>
+      list.map((account) =>
+        account.id === accountId
+          ? { ...account, benefits: account.benefits.filter((b) => b.id !== benefitId) }
+          : account,
+      ),
+    );
+    this.api.deleteBenefit(Number(benefitId)).subscribe({
+      error: (err) => {
+        console.error('Failed to delete benefit', err);
+        this.reload();
+      },
+    });
+  }
+
+  resetYearly(accountId: string): void {
+    this.api.resetYearlyBenefits(Number(accountId)).subscribe({
+      next: (dtos) => {
+        const benefits = dtos.map(toBenefit);
+        this.accounts.update((list) =>
+          list.map((account) => (account.id === accountId ? { ...account, benefits } : account)),
+        );
+      },
+      error: (err) => console.error('Failed to reset yearly benefits', err),
+    });
+  }
+
+  private patchBenefit(accountId: string, benefit: AccountBenefit): void {
+    this.accounts.update((list) =>
+      list.map((account) => {
+        if (account.id !== accountId) {
+          return account;
+        }
+        return {
+          ...account,
+          benefits: account.benefits.map((b) => (b.id === benefit.id ? benefit : b)),
+        };
+      }),
+    );
   }
 }

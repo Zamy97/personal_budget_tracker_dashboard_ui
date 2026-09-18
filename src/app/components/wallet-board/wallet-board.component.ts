@@ -18,15 +18,13 @@ export class WalletBoardComponent {
   draftName = signal('');
   draftInstitution = signal('');
   draftStatus = signal<AccountStatus>('ACTIVE');
-  draftBalance = signal<number | null>(0);
-  draftLimit = signal<number | null>(null);
-  draftRate = signal<number | null>(null);
   draftPayment = signal<number | null>(null);
   draftDueDay = signal<number | null>(null);
   draftAnnualFee = signal<number | null>(null);
   draftRenewsOn = signal('');
   draftNotes = signal('');
   draftAccent = signal('');
+  newBenefitLabel = signal<Record<string, string>>({});
 
   activeTab = computed(() => this.wallet.tabs.find((t) => t.kind === this.wallet.selectedKind())!);
   items = this.wallet.accountsForSelected;
@@ -46,9 +44,6 @@ export class WalletBoardComponent {
     this.draftName.set(account.name);
     this.draftInstitution.set(account.institution);
     this.draftStatus.set(account.status);
-    this.draftBalance.set(account.balance);
-    this.draftLimit.set(account.creditLimit);
-    this.draftRate.set(account.interestRate);
     this.draftPayment.set(account.monthlyPayment);
     this.draftDueDay.set(account.dueDay);
     this.draftAnnualFee.set(account.annualFee);
@@ -68,32 +63,30 @@ export class WalletBoardComponent {
       return;
     }
     const kind = this.wallet.selectedKind();
+    const id = this.editingId();
+    const existing = id && id !== 'new' ? this.wallet.accounts().find((a) => a.id === id) : null;
+
     const payload = {
       kind,
       name,
       institution: this.draftInstitution().trim(),
       status: this.draftStatus(),
-      balance: this.draftBalance() ?? 0,
-      creditLimit: this.draftLimit(),
-      interestRate: this.draftRate(),
-      monthlyPayment: this.draftPayment(),
-      dueDay: this.draftDueDay(),
+      balance: existing?.balance ?? 0,
+      creditLimit: existing?.creditLimit ?? null,
+      interestRate: existing?.interestRate ?? null,
+      monthlyPayment: kind === 'MEMBERSHIP' ? null : this.draftPayment(),
+      dueDay: kind === 'MEMBERSHIP' ? null : this.draftDueDay(),
       annualFee: this.draftAnnualFee(),
-      renewsOn: this.draftRenewsOn() || null,
+      renewsOn: kind === 'MEMBERSHIP' ? this.draftRenewsOn() || null : null,
       accent: this.draftAccent() || defaultAccent(kind),
       notes: this.draftNotes().trim(),
     };
 
-    const id = this.editingId();
     if (id === 'new') {
       this.wallet.saveNew(payload);
       return;
     }
-    if (!id) {
-      return;
-    }
-    const existing = this.wallet.accounts().find((a) => a.id === id);
-    if (!existing) {
+    if (!id || !existing) {
       return;
     }
     this.wallet.saveExisting({ ...existing, ...payload });
@@ -103,20 +96,51 @@ export class WalletBoardComponent {
     this.wallet.remove(id);
   }
 
-  utilization(account: TrackedAccount): number | null {
-    if (!account.creditLimit || account.creditLimit <= 0) {
-      return null;
+  benefitProgress(account: TrackedAccount): { done: number; total: number; leftValue: number } {
+    const total = account.benefits.length;
+    const done = account.benefits.filter((b) => b.used).length;
+    const leftValue = account.benefits.filter((b) => !b.used).reduce((sum, b) => sum + (b.amount ?? 0), 0);
+    return { done, total, leftValue };
+  }
+
+  toggleBenefit(accountId: string, benefitId: string): void {
+    this.wallet.toggleBenefit(accountId, benefitId);
+  }
+
+  removeBenefit(accountId: string, benefitId: string): void {
+    this.wallet.removeBenefit(accountId, benefitId);
+  }
+
+  resetYearly(accountId: string): void {
+    this.wallet.resetYearly(accountId);
+  }
+
+  setBenefitDraft(accountId: string, value: string): void {
+    this.newBenefitLabel.update((map) => ({ ...map, [accountId]: value }));
+  }
+
+  benefitDraft(accountId: string): string {
+    return this.newBenefitLabel()[accountId] ?? '';
+  }
+
+  addBenefit(accountId: string): void {
+    const label = this.benefitDraft(accountId).trim();
+    if (!label) {
+      return;
     }
-    return Math.min(100, (account.balance / account.creditLimit) * 100);
+    this.wallet.addBenefit(accountId, {
+      label,
+      amount: null,
+      cadence: 'YEARLY',
+      used: false,
+    });
+    this.setBenefitDraft(accountId, '');
   }
 
   private resetDraft(kind: AccountKind): void {
     this.draftName.set('');
     this.draftInstitution.set('');
     this.draftStatus.set('ACTIVE');
-    this.draftBalance.set(0);
-    this.draftLimit.set(null);
-    this.draftRate.set(null);
     this.draftPayment.set(null);
     this.draftDueDay.set(null);
     this.draftAnnualFee.set(null);

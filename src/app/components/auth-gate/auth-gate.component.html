@@ -1,5 +1,5 @@
 <div class="gate">
-  <form class="gate__card glass-card" (submit)="submit($event)">
+  <form class="gate__card glass-card" (submit)="submit($event)" [class.gate__card--busy]="auth.submitting()">
     <div class="gate__icon">
       <lucide-icon [name]="mode() === 'login' ? 'lock' : 'user-plus'" [size]="22"></lucide-icon>
     </div>
@@ -13,10 +13,22 @@
     </p>
 
     <div class="gate__tabs" role="tablist">
-      <button type="button" role="tab" [class.active]="mode() === 'login'" (click)="switchMode('login')">
+      <button
+        type="button"
+        role="tab"
+        [class.active]="mode() === 'login'"
+        (click)="switchMode('login')"
+        [disabled]="auth.submitting()"
+      >
         Sign in
       </button>
-      <button type="button" role="tab" [class.active]="mode() === 'signup'" (click)="switchMode('signup')">
+      <button
+        type="button"
+        role="tab"
+        [class.active]="mode() === 'signup'"
+        (click)="switchMode('signup')"
+        [disabled]="auth.submitting()"
+      >
         Sign up
       </button>
     </div>
@@ -98,4 +110,23 @@
       </ng-template>
     </button>
   </form>
+
+  <div class="gate__overlay" *ngIf="auth.submitting()" role="status" aria-live="polite" aria-busy="true">
+    <div class="gate__overlay-card glass-card">
+      <div class="auth-loader" aria-hidden="true">
+        <span class="auth-loader__ring"></span>
+        <span class="auth-loader__dot"></span>
+      </div>
+      <p class="gate__overlay-title">
+        {{ mode() === 'login' ? 'Signing you in' : 'Creating your account' }}
+      </p>
+      <p class="gate__overlay-sub" [class.gate__overlay-sub--slow]="showSlowHint()">
+        {{
+          showSlowHint()
+            ? 'Waking the server — this can take a few seconds…'
+            : 'Talking to the server…'
+        }}
+      </p>
+    </div>
+  </div>
 </div>
