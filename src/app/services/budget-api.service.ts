@@ -26,6 +26,8 @@ export interface LineItemDto {
   date: string;
   note: string;
   amount: number;
+  trackedAccountId?: number | null;
+  trackedAccountName?: string | null;
 }
 
 const BASE_URL = `${environment.apiBaseUrl.replace(/\/$/, '')}/api/budget`;
@@ -74,8 +76,16 @@ export class BudgetApiService {
     date: string,
     note: string,
     amount: number,
+    trackedAccountId: number | null = null,
   ): Observable<LineItemDto> {
-    return this.http.post<LineItemDto>(`${BASE_URL}/line-items`, { categoryId, month, date, note, amount });
+    return this.http.post<LineItemDto>(`${BASE_URL}/line-items`, {
+      categoryId,
+      month,
+      date,
+      note,
+      amount,
+      trackedAccountId,
+    });
   }
 
   updateLineItem(
@@ -85,6 +95,7 @@ export class BudgetApiService {
     date: string,
     note: string,
     amount: number,
+    trackedAccountId: number | null = null,
   ): Observable<LineItemDto> {
     return this.http.put<LineItemDto>(`${BASE_URL}/line-items/${id}`, {
       categoryId,
@@ -92,6 +103,7 @@ export class BudgetApiService {
       date,
       note,
       amount,
+      trackedAccountId,
     });
   }
 

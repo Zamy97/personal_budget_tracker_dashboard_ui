@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
+import { CardChargeComponent } from '../card-charge/card-charge.component';
 import {
   AccountBenefit,
   AccountKind,
@@ -10,17 +11,19 @@ import {
   TrackedAccount,
   yearMonthKey,
 } from '../../models/wallet.model';
+import { BudgetService } from '../../services/budget.service';
 import { WalletService, benefitOpenValue, monthsUsedInYear } from '../../services/wallet.service';
 
 @Component({
   selector: 'app-wallet-board',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, CardChargeComponent],
   templateUrl: './wallet-board.component.html',
   styleUrls: ['./wallet-board.component.scss'],
 })
 export class WalletBoardComponent {
   wallet = inject(WalletService);
+  budget = inject(BudgetService);
 
   draftName = signal('');
   draftInstitution = signal('');
@@ -35,6 +38,7 @@ export class WalletBoardComponent {
   newBenefitCadence = signal<Record<string, 'MONTHLY' | 'YEARLY'>>({});
   /** When true for an account id, completed benefits stay visible so they can be unchecked. */
   showCompleted = signal<Record<string, boolean>>({});
+  chargingAccount = signal<TrackedAccount | null>(null);
 
   monthLabels = MONTH_LABELS;
   monthIndexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
@@ -51,6 +55,18 @@ export class WalletBoardComponent {
 
   selectTab(kind: AccountKind): void {
     this.wallet.selectKind(kind);
+  }
+
+  openCharges(account: TrackedAccount): void {
+    this.chargingAccount.set(account);
+  }
+
+  closeCharges(): void {
+    this.chargingAccount.set(null);
+  }
+
+  cardSpend(accountId: string): number {
+    return this.budget.accountSpendThisMonth(accountId);
   }
 
   beginCreate(): void {

@@ -46,6 +46,9 @@ export interface ActualLineItem {
   date: string;
   note: string;
   amount: number;
+  /** Wallet card this charge was made on, when logged from a credit card. */
+  trackedAccountId: string | null;
+  trackedAccountName: string | null;
 }
 
 /** Derived row used for rendering any category table (checkbook-register style). */

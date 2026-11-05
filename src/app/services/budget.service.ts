@@ -39,6 +39,8 @@ function toLineItem(dto: LineItemDto): ActualLineItem {
     date: dto.date,
     note: dto.note,
     amount: dto.amount,
+    trackedAccountId: dto.trackedAccountId != null ? String(dto.trackedAccountId) : null,
+    trackedAccountName: dto.trackedAccountName ?? null,
   };
 }
 
@@ -311,18 +313,94 @@ export class BudgetService {
       .sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
   }
 
-  addLineItem(categoryId: string, date: string, note: string, amount: number): void {
+  addLineItem(
+    categoryId: string,
+    date: string,
+    note: string,
+    amount: number,
+    trackedAccountId: string | null = null,
+  ): void {
     const month = this.selectedMonth();
-    this.api.createLineItem(Number(categoryId), month, date, note, amount).subscribe({
-      next: (dto) => this.lineItems.update((list) => [...list, toLineItem(dto)]),
-      error: (err) => console.error('Failed to add detailed entry', err),
-    });
+    this.api
+      .createLineItem(
+        Number(categoryId),
+        month,
+        date,
+        note,
+        amount,
+        trackedAccountId != null ? Number(trackedAccountId) : null,
+      )
+      .subscribe({
+        next: (dto) => {
+          this.lineItems.update((list) => [...list, toLineItem(dto)]);
+          this.monthMembership.update((current) => new Set(current).add(membershipKey(categoryId, month)));
+        },
+        error: (err) => console.error('Failed to add detailed entry', err),
+      });
+  }
+
+  /** Categories visible in the selected month, grouped for transaction pickers. */
+  categoriesForSelectedMonth = computed(() => {
+    const month = this.selectedMonth();
+    const membership = this.monthMembership();
+    return GROUP_CONFIGS.map((cfg) => ({
+      group: cfg.group,
+      label: cfg.label,
+      categories: this.categories()
+        .filter((c) => c.group === cfg.group && membership.has(membershipKey(c.id, month)))
+        .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name)),
+    })).filter((section) => section.categories.length > 0);
+  });
+
+  /** All categories (any month membership) — used when logging a card charge into Budget. */
+  allCategoriesGrouped = computed(() =>
+    GROUP_CONFIGS.map((cfg) => ({
+      group: cfg.group,
+      label: cfg.label,
+      categories: this.categories()
+        .filter((c) => c.group === cfg.group)
+        .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name)),
+    })).filter((section) => section.categories.length > 0),
+  );
+
+  /** Newest dated entries in the selected month (across all categories). */
+  recentLineItems = computed(() => {
+    const month = this.selectedMonth();
+    const names = new Map(this.categories().map((c) => [c.id, c.name]));
+    return this.lineItems()
+      .filter((item) => item.month === month)
+      .slice()
+      .sort((a, b) => b.date.localeCompare(a.date) || Number(b.id) - Number(a.id))
+      .slice(0, 12)
+      .map((item) => ({
+        ...item,
+        categoryName: names.get(item.categoryId) ?? 'Category',
+      }));
+  });
+
+  lineItemsForAccount(accountId: string): ActualLineItem[] {
+    const month = this.selectedMonth();
+    return this.lineItems()
+      .filter((item) => item.trackedAccountId === accountId && item.month === month)
+      .sort((a, b) => b.date.localeCompare(a.date) || Number(b.id) - Number(a.id));
+  }
+
+  accountSpendThisMonth(accountId: string): number {
+    return this.lineItemsForAccount(accountId).reduce((sum, item) => sum + item.amount, 0);
   }
 
   updateLineItem(item: ActualLineItem): void {
     this.lineItems.update((list) => list.map((current) => (current.id === item.id ? item : current)));
     this.api
-      .updateLineItem(Number(item.id), Number(item.categoryId), item.month, item.date, item.note, item.amount)
+      .updateLineItem(
+        Number(item.id),
+        Number(item.categoryId),
+        item.month,
+        item.date,
+        item.note,
+        item.amount,
+        item.trackedAccountId != null ? Number(item.trackedAccountId) : null,
+      )
       .subscribe({
         next: (dto) =>
           this.lineItems.update((list) =>

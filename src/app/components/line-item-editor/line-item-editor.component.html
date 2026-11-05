@@ -28,13 +28,16 @@
           [value]="item.date"
           (change)="update(item, { date: $any($event.target).value })"
         />
-        <input
-          type="text"
-          maxlength="200"
-          placeholder="Add a note"
-          [value]="item.note"
-          (change)="update(item, { note: $any($event.target).value })"
-        />
+        <div class="entry-note">
+          <input
+            type="text"
+            maxlength="200"
+            placeholder="Add a note"
+            [value]="item.note"
+            (change)="update(item, { note: $any($event.target).value })"
+          />
+          <span class="entry-card" *ngIf="item.trackedAccountName">{{ item.trackedAccountName }}</span>
+        </div>
         <span class="money-field">
           <span class="money-field__symbol">$</span>
           <input

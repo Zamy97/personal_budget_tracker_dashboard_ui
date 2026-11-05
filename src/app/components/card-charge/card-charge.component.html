@@ -1,0 +1,108 @@
+<div class="charge-backdrop" (click)="closed.emit()">
+  <section
+    class="charge glass-card"
+    (click)="$event.stopPropagation()"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="charge-title"
+  >
+    <header class="charge__header">
+      <div>
+        <p>{{ monthLabel }} · rolls into Budget</p>
+        <h2 id="charge-title">{{ account.name }}</h2>
+      </div>
+      <button type="button" class="icon-button" (click)="closed.emit()" title="Close">
+        <lucide-icon name="x" [size]="17"></lucide-icon>
+      </button>
+    </header>
+
+    <p class="charge__hint">
+      Log a day-to-day charge on this card, pick the Budget category it belongs to, and the amount is added
+      on the main dashboard for that category.
+    </p>
+
+    <form class="charge-form" (submit)="$event.preventDefault(); add()">
+      <label class="field field--amount">
+        <span class="field__label">Amount</span>
+        <span class="money-field">
+          <span class="money-field__symbol">$</span>
+          <input
+            #amountInput
+            type="number"
+            name="amount"
+            inputmode="decimal"
+            step="0.01"
+            placeholder="0.00"
+            [ngModel]="addAmount()"
+            (ngModelChange)="addAmount.set($event)"
+            required
+          />
+        </span>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Budget category</span>
+        <select name="category" [ngModel]="categoryId()" (ngModelChange)="categoryId.set($event)" required>
+          <optgroup *ngFor="let section of categorySections()" [label]="section.label">
+            <option *ngFor="let cat of section.categories" [value]="cat.id">{{ cat.name }}</option>
+          </optgroup>
+        </select>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Date</span>
+        <input
+          type="date"
+          name="date"
+          [min]="monthStart"
+          [max]="monthEnd"
+          [ngModel]="addDate()"
+          (ngModelChange)="addDate.set($event)"
+          required
+        />
+      </label>
+
+      <label class="field field--note">
+        <span class="field__label">What was it for?</span>
+        <input
+          type="text"
+          name="note"
+          maxlength="200"
+          placeholder="e.g. Groceries, gas, dinner"
+          [ngModel]="addNote()"
+          (ngModelChange)="addNote.set($event)"
+        />
+      </label>
+
+      <button type="submit" class="charge-submit" [disabled]="!canAdd || !categorySections().length">
+        <lucide-icon name="plus" [size]="15"></lucide-icon>
+        Add to {{ categoryId() ? categoryName(categoryId()) : 'Budget' }}
+      </button>
+    </form>
+
+    <p class="charge-toast" *ngIf="justAdded()" role="status">{{ justAdded() }}</p>
+
+    <p class="charge-empty" *ngIf="!categorySections().length">
+      Add categories on the Budget tab first, then you can route card charges into them.
+    </p>
+
+    <div class="charge-recent" *ngIf="charges.length">
+      <div class="charge-recent__head">
+        <span>This card · {{ monthLabel }}</span>
+        <strong>{{ monthTotal | currency }}</strong>
+      </div>
+      <ul>
+        <li *ngFor="let item of charges">
+          <div class="charge-recent__main">
+            <strong>{{ item.categoryName }}</strong>
+            <span>{{ item.note || 'No note' }} · {{ formatDay(item.date) }}</span>
+          </div>
+          <strong class="charge-recent__amount">{{ item.amount | currency }}</strong>
+          <button type="button" class="icon-button icon-button--danger" (click)="remove(item.id)" title="Delete">
+            <lucide-icon name="trash-2" [size]="13"></lucide-icon>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </section>
+</div>

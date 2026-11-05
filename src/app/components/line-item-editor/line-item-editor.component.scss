@@ -72,6 +72,18 @@ footer {
   letter-spacing: 0.05em;
 }
 
+.entry-note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.entry-card {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+}
+
 input {
   width: 100%;
   min-width: 0;

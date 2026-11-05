@@ -8,6 +8,7 @@ import { CashFlowSummaryComponent } from './components/cash-flow-summary/cash-fl
 import { GroupTotalsChartComponent } from './components/group-totals-chart/group-totals-chart.component';
 import { AllocationDonutComponent } from './components/allocation-donut/allocation-donut.component';
 import { CategoryTableComponent } from './components/category-table/category-table.component';
+import { TransactionQuickAddComponent } from './components/transaction-quick-add/transaction-quick-add.component';
 import { WalletBoardComponent } from './components/wallet-board/wallet-board.component';
 
 type AppView = 'budget' | 'wallet';
@@ -23,6 +24,7 @@ type AppView = 'budget' | 'wallet';
     GroupTotalsChartComponent,
     AllocationDonutComponent,
     CategoryTableComponent,
+    TransactionQuickAddComponent,
     WalletBoardComponent,
   ],
   templateUrl: './app.component.html',
@@ -33,6 +35,7 @@ export class AppComponent {
   budget = inject(BudgetService);
 
   view = signal<AppView>('budget');
+  showQuickAdd = signal(false);
 
   /** Bumps on month change so the tables gently re-animate. */
   monthMotion = signal(0);
@@ -47,6 +50,16 @@ export class AppComponent {
 
   showWallet(): void {
     this.view.set('wallet');
+    this.showQuickAdd.set(false);
+  }
+
+  openQuickAdd(): void {
+    this.view.set('budget');
+    this.showQuickAdd.set(true);
+  }
+
+  closeQuickAdd(): void {
+    this.showQuickAdd.set(false);
   }
 
   previousMonth(): void {

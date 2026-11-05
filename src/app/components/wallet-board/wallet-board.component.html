@@ -53,6 +53,17 @@
         <span class="account-card__badge">{{ item.status | lowercase }}</span>
       </header>
 
+      <div class="account-card__spend" *ngIf="wallet.selectedKind() === 'CREDIT_CARD'">
+        <div>
+          <span>Logged to Budget · {{ budget.monthLabel() }}</span>
+          <strong>{{ cardSpend(item.id) | currency }}</strong>
+        </div>
+        <button type="button" class="account-card__charge-btn" (click)="openCharges(item)">
+          <lucide-icon name="plus" [size]="13"></lucide-icon>
+          Log charge
+        </button>
+      </div>
+
       <div class="account-card__progress" *ngIf="item.benefits.length; else noBenefits">
         <div class="account-card__progress-row">
           <span>Used this year</span>
@@ -281,3 +292,9 @@
     </div>
   </ng-template>
 </div>
+
+<app-card-charge
+  *ngIf="chargingAccount() as card"
+  [account]="card"
+  (closed)="closeCharges()"
+></app-card-charge>

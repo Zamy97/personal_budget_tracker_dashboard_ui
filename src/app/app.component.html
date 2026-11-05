@@ -50,6 +50,11 @@
     </div>
 
     <ng-container *ngIf="view() === 'budget'">
+      <button type="button" class="tx-add-btn" (click)="openQuickAdd()">
+        <lucide-icon name="plus" [size]="14"></lucide-icon>
+        Add transaction
+      </button>
+
       <div class="stat-chip">
         <span class="stat-chip__label">Left to Spend</span>
         <span class="stat-chip__value" [class.negative]="budget.leftToSpend() < 0">
@@ -114,3 +119,5 @@
     <app-wallet-board></app-wallet-board>
   </section>
 </div>
+
+<app-transaction-quick-add *ngIf="showQuickAdd()" (closed)="closeQuickAdd()"></app-transaction-quick-add>
