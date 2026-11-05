@@ -30,6 +30,19 @@
         </button>
       </div>
 
+      <div class="wallet-month" *ngIf="wallet.selectedKind() === 'CREDIT_CARD'">
+        <button type="button" class="wallet-month__btn" (click)="previousMonth()" title="Previous month">
+          <lucide-icon name="chevron-left" [size]="14"></lucide-icon>
+        </button>
+        <span>{{ budget.monthLabel() }}</span>
+        <button type="button" class="wallet-month__btn" (click)="nextMonth()" title="Next month">
+          <lucide-icon name="chevron-right" [size]="14"></lucide-icon>
+        </button>
+        <button type="button" class="wallet-month__today" *ngIf="!budget.isCurrentMonth()" (click)="jumpToToday()">
+          Today
+        </button>
+      </div>
+
       <button type="button" class="wallet__add" (click)="beginCreate()">
         <lucide-icon name="plus" [size]="14"></lucide-icon>
         Add
@@ -37,252 +50,321 @@
     </div>
   </div>
 
-  <div class="wallet-grid" *ngIf="items().length > 0 || editingId() === 'new'; else empty">
-    <article
-      class="account-card"
-      *ngFor="let item of items(); trackBy: trackAccount"
-      [class.account-card--planned]="item.status === 'PLANNED'"
-      [class.account-card--closed]="item.status === 'CLOSED'"
-      [style.--card-accent]="item.accent || 'var(--income)'"
-    >
-      <header class="account-card__top">
-        <div>
-          <p class="account-card__institution">{{ item.institution || activeTab().label }}</p>
-          <h3>{{ item.name }}</h3>
-        </div>
-        <span class="account-card__badge">{{ item.status | lowercase }}</span>
-      </header>
-
-      <div class="account-card__spend" *ngIf="wallet.selectedKind() === 'CREDIT_CARD'">
-        <div>
-          <span>Logged to Budget · {{ budget.monthLabel() }}</span>
-          <strong>{{ cardSpend(item.id) | currency }}</strong>
-        </div>
-        <button type="button" class="account-card__charge-btn" (click)="openCharges(item)">
-          <lucide-icon name="plus" [size]="13"></lucide-icon>
-          Log charge
-        </button>
-      </div>
-
-      <div class="account-card__progress" *ngIf="item.benefits.length; else noBenefits">
-        <div class="account-card__progress-row">
-          <span>Used this year</span>
-          <strong>{{ benefitProgress(item).done }}/{{ benefitProgress(item).total }}</strong>
-        </div>
-        <div class="account-card__meter-track">
-          <div
-            class="account-card__meter-fill"
-            [style.width.%]="
-              benefitProgress(item).total
-                ? (benefitProgress(item).done / benefitProgress(item).total) * 100
-                : 0
-            "
-          ></div>
-        </div>
-        <span class="account-card__progress-hint" *ngIf="benefitProgress(item).leftValue">
-          ~{{ benefitProgress(item).leftValue | currency }} still on the table
-        </span>
-      </div>
-      <ng-template #noBenefits>
-        <p class="account-card__tracker-note">
-          {{
-            wallet.selectedKind() === 'CREDIT_CARD'
-              ? 'Add monthly benefit reminders so credits don’t slip month to month.'
-              : 'Tracked for visibility — no balance entry needed.'
-          }}
-        </p>
-      </ng-template>
-
-      <dl class="account-card__meta">
-        <div *ngIf="item.annualFee != null">
-          <dt>Annual fee</dt>
-          <dd>{{ item.annualFee | currency }}</dd>
-        </div>
-        <div *ngIf="item.monthlyPayment != null">
-          <dt>Payment</dt>
-          <dd>{{ item.monthlyPayment | currency }}/mo</dd>
-        </div>
-        <div *ngIf="item.dueDay != null">
-          <dt>Due</dt>
-          <dd>Day {{ item.dueDay }}</dd>
-        </div>
-        <div *ngIf="item.renewsOn">
-          <dt>Renews</dt>
-          <dd>{{ item.renewsOn }}</dd>
-        </div>
-      </dl>
-
-      <ul class="benefit-list" *ngIf="visibleBenefits(item).length || completedCount(item)">
-        <li
-          class="benefit-list__item"
-          *ngFor="let benefit of visibleBenefits(item); trackBy: trackBenefit"
-          [class.benefit-list__item--used]="benefit.cadence !== 'MONTHLY' && benefit.used"
-          [class.benefit-list__item--monthly]="benefit.cadence === 'MONTHLY'"
-          [class.benefit-list__item--complete]="isBenefitComplete(benefit)"
-        >
-          <ng-container *ngIf="benefit.cadence === 'MONTHLY'; else yearlyRow">
-            <div class="benefit-list__body benefit-list__body--full">
-              <div class="benefit-list__heading">
-                <span class="benefit-list__label">{{ benefit.label }}</span>
-                <button
-                  type="button"
-                  class="benefit-list__remove"
-                  title="Remove"
-                  (click)="removeBenefit(item.id, benefit.id)"
-                >
-                  <lucide-icon name="x" [size]="14"></lucide-icon>
-                </button>
-              </div>
-              <span class="benefit-list__meta">
-                <ng-container *ngIf="benefit.amount != null">{{ benefit.amount | currency }}/mo · </ng-container>
-                {{ monthsUsed(benefit) }}/12 months in {{ trackingYear() }}
-              </span>
-              <div class="month-grid" role="group" [attr.aria-label]="benefit.label + ' months'">
-                <button
-                  type="button"
-                  class="month-grid__cell"
-                  *ngFor="let m of monthIndexes"
-                  [class.month-grid__cell--used]="isMonthUsed(benefit, m)"
-                  [class.month-grid__cell--current]="monthKey(m) === currentMonthKey"
-                  [attr.aria-pressed]="isMonthUsed(benefit, m)"
-                  [attr.title]="monthKey(m)"
-                  (mousedown)="$event.preventDefault()"
-                  (click)="toggleMonth(item.id, benefit.id, m, $event)"
-                >
-                  {{ monthLabels[m] }}
-                </button>
-              </div>
-            </div>
-          </ng-container>
-
-          <ng-template #yearlyRow>
-            <button
-              type="button"
-              class="benefit-list__check"
-              [attr.aria-pressed]="benefit.used"
-              [attr.aria-label]="(benefit.used ? 'Mark unused: ' : 'Mark used: ') + benefit.label"
-              (mousedown)="$event.preventDefault()"
-              (click)="toggleBenefit(item.id, benefit.id, $event)"
-            >
-              <lucide-icon *ngIf="benefit.used" name="check" [size]="14"></lucide-icon>
-            </button>
-            <div class="benefit-list__body">
-              <span class="benefit-list__label">{{ benefit.label }}</span>
-              <span class="benefit-list__meta">
-                <ng-container *ngIf="benefit.amount != null">{{ benefit.amount | currency }}</ng-container>
-                <ng-container *ngIf="benefit.amount != null"> · </ng-container>
-                {{ benefit.cadence === 'ONCE' ? 'One-time' : 'Yearly' }}
-              </span>
-            </div>
-            <button
-              type="button"
-              class="benefit-list__remove"
-              title="Remove"
-              (click)="removeBenefit(item.id, benefit.id)"
-            >
-              <lucide-icon name="x" [size]="14"></lucide-icon>
-            </button>
-          </ng-template>
-        </li>
-
-        <li class="benefit-list__completed-toggle" *ngIf="completedCount(item)">
-          <button type="button" (click)="toggleShowCompleted(item.id)">
-            {{ showCompleted()[item.id] ? 'Hide' : 'Show' }}
-            {{ completedCount(item) }} completed
-          </button>
-        </li>
-      </ul>
-
-      <form class="benefit-add" (submit)="$event.preventDefault(); addBenefit(item.id)">
-        <input
-          type="text"
-          [ngModel]="benefitDraft(item.id)"
-          (ngModelChange)="setBenefitDraft(item.id, $event)"
-          [name]="'benefit-' + item.id"
-          placeholder="Add a benefit reminder…"
-          maxlength="160"
-        />
-        <select
-          [ngModel]="benefitCadence(item.id)"
-          (ngModelChange)="setBenefitCadence(item.id, $event)"
-          [name]="'cadence-' + item.id"
-          title="Cadence"
-        >
-          <option value="MONTHLY">Monthly</option>
-          <option value="YEARLY">Yearly</option>
-        </select>
-        <button type="submit" [disabled]="!benefitDraft(item.id).trim()">
-          <lucide-icon name="plus" [size]="13"></lucide-icon>
-        </button>
-      </form>
-
-      <p class="account-card__notes" *ngIf="item.notes">{{ item.notes }}</p>
-
-      <footer class="account-card__actions">
-        <button type="button" (click)="beginEdit(item)">Edit</button>
+  <!-- Credit cards: picker + day ledger -->
+  <ng-container *ngIf="wallet.selectedKind() === 'CREDIT_CARD'; else otherKinds">
+    <div class="card-ledger" *ngIf="items().length; else empty">
+      <div class="card-picker" role="tablist">
         <button
           type="button"
-          class="ghost"
-          *ngIf="item.benefits.length"
-          (click)="resetYearly(item.id)"
-          title="Clear this year’s monthly checks and yearly boxes"
+          class="card-picker__chip"
+          *ngFor="let item of items(); trackBy: trackAccount"
+          role="tab"
+          [class.active]="focusedCard()?.id === item.id"
+          [style.--card-accent]="item.accent || 'var(--income)'"
+          (click)="focusCard(item)"
         >
-          Reset {{ trackingYear() }}
+          <span class="card-picker__name">{{ item.name }}</span>
+          <strong>{{ cardSpend(item.id) | currency }}</strong>
         </button>
-        <button type="button" class="danger" (click)="remove(item.id)">Remove</button>
-      </footer>
-    </article>
-
-    <form class="account-card account-card--editor" *ngIf="editingId()" (submit)="$event.preventDefault(); save()">
-      <h3>{{ editingId() === 'new' ? 'Add item' : 'Edit item' }}</h3>
-
-      <label>
-        <span>Name</span>
-        <input [ngModel]="draftName()" (ngModelChange)="draftName.set($event)" name="name" required />
-      </label>
-      <label>
-        <span>Institution</span>
-        <input [ngModel]="draftInstitution()" (ngModelChange)="draftInstitution.set($event)" name="institution" />
-      </label>
-      <label>
-        <span>Status</span>
-        <select [ngModel]="draftStatus()" (ngModelChange)="draftStatus.set($event)" name="status">
-          <option value="ACTIVE">Active</option>
-          <option value="PLANNED">Planned</option>
-          <option value="CLOSED">Closed</option>
-        </select>
-      </label>
-
-      <div class="editor-row">
-        <label>
-          <span>Annual fee</span>
-          <input type="number" step="0.01" [ngModel]="draftAnnualFee()" (ngModelChange)="draftAnnualFee.set($event)" name="fee" />
-        </label>
-        <label *ngIf="wallet.selectedKind() !== 'MEMBERSHIP'">
-          <span>Monthly payment</span>
-          <input type="number" step="0.01" [ngModel]="draftPayment()" (ngModelChange)="draftPayment.set($event)" name="payment" />
-        </label>
-        <label *ngIf="wallet.selectedKind() !== 'MEMBERSHIP'">
-          <span>Due day</span>
-          <input type="number" min="1" max="31" [ngModel]="draftDueDay()" (ngModelChange)="draftDueDay.set($event)" name="due" />
-        </label>
-        <label *ngIf="wallet.selectedKind() === 'MEMBERSHIP'">
-          <span>Renews on</span>
-          <input type="date" [ngModel]="draftRenewsOn()" (ngModelChange)="draftRenewsOn.set($event)" name="renews" />
-        </label>
       </div>
 
-      <label>
-        <span>Notes</span>
-        <input [ngModel]="draftNotes()" (ngModelChange)="draftNotes.set($event)" name="notes" placeholder="Optional" />
-      </label>
+      <section class="ledger" *ngIf="focusedCard() as card" [style.--card-accent]="card.accent || 'var(--income)'">
+        <header class="ledger__header">
+          <div>
+            <p>{{ card.institution }}</p>
+            <h2>{{ card.name }}</h2>
+          </div>
+          <div class="ledger__header-meta">
+            <div class="ledger__spend">
+              <span>Logged · {{ budget.monthLabel() }}</span>
+              <strong>{{ cardSpend(card.id) | currency }}</strong>
+            </div>
+            <button type="button" class="ghost" (click)="beginEdit(card)">Edit</button>
+            <button type="button" class="danger" (click)="remove(card.id)">Remove</button>
+          </div>
+        </header>
 
-      <div class="editor-actions">
-        <button type="button" class="ghost" (click)="cancel()">Cancel</button>
-        <button type="submit" [disabled]="!draftName().trim()">Save</button>
-      </div>
-    </form>
-  </div>
+        <button
+          type="button"
+          class="benefits-toggle"
+          *ngIf="card.benefits.length"
+          [attr.aria-expanded]="benefitsExpanded(card.id)"
+          (click)="toggleBenefits(card.id)"
+        >
+          <span>
+            Benefits
+            <em>{{ benefitProgress(card).done }}/{{ benefitProgress(card).total }}</em>
+          </span>
+          <lucide-icon name="chevron-right" [size]="14"></lucide-icon>
+        </button>
+
+        <div class="benefits-panel" *ngIf="benefitsExpanded(card.id)">
+          <ul class="benefit-list" *ngIf="visibleBenefits(card).length || completedCount(card)">
+            <li
+              class="benefit-list__item"
+              *ngFor="let benefit of visibleBenefits(card); trackBy: trackBenefit"
+              [class.benefit-list__item--used]="benefit.cadence !== 'MONTHLY' && benefit.used"
+              [class.benefit-list__item--monthly]="benefit.cadence === 'MONTHLY'"
+              [class.benefit-list__item--complete]="isBenefitComplete(benefit)"
+            >
+              <ng-container *ngIf="benefit.cadence === 'MONTHLY'; else yearlyRow">
+                <div class="benefit-list__body benefit-list__body--full">
+                  <div class="benefit-list__heading">
+                    <span class="benefit-list__label">{{ benefit.label }}</span>
+                    <button type="button" class="benefit-list__remove" (click)="removeBenefit(card.id, benefit.id)">
+                      <lucide-icon name="x" [size]="14"></lucide-icon>
+                    </button>
+                  </div>
+                  <span class="benefit-list__meta">
+                    <ng-container *ngIf="benefit.amount != null">{{ benefit.amount | currency }}/mo · </ng-container>
+                    {{ monthsUsed(benefit) }}/12 in {{ trackingYear() }}
+                  </span>
+                  <div class="month-grid">
+                    <button
+                      type="button"
+                      class="month-grid__cell"
+                      *ngFor="let m of monthIndexes"
+                      [class.month-grid__cell--used]="isMonthUsed(benefit, m)"
+                      [class.month-grid__cell--current]="monthKey(m) === currentMonthKey"
+                      (mousedown)="$event.preventDefault()"
+                      (click)="toggleMonth(card.id, benefit.id, m, $event)"
+                    >
+                      {{ monthLabels[m] }}
+                    </button>
+                  </div>
+                </div>
+              </ng-container>
+              <ng-template #yearlyRow>
+                <button
+                  type="button"
+                  class="benefit-list__check"
+                  (mousedown)="$event.preventDefault()"
+                  (click)="toggleBenefit(card.id, benefit.id, $event)"
+                >
+                  <lucide-icon *ngIf="benefit.used" name="check" [size]="14"></lucide-icon>
+                </button>
+                <div class="benefit-list__body">
+                  <span class="benefit-list__label">{{ benefit.label }}</span>
+                  <span class="benefit-list__meta">
+                    <ng-container *ngIf="benefit.amount != null">{{ benefit.amount | currency }} · </ng-container>
+                    {{ benefit.cadence === 'ONCE' ? 'One-time' : 'Yearly' }}
+                  </span>
+                </div>
+                <button type="button" class="benefit-list__remove" (click)="removeBenefit(card.id, benefit.id)">
+                  <lucide-icon name="x" [size]="14"></lucide-icon>
+                </button>
+              </ng-template>
+            </li>
+            <li class="benefit-list__completed-toggle" *ngIf="completedCount(card)">
+              <button type="button" (click)="toggleShowCompleted(card.id)">
+                {{ showCompleted()[card.id] ? 'Hide' : 'Show' }} {{ completedCount(card) }} completed
+              </button>
+            </li>
+          </ul>
+          <form class="benefit-add" (submit)="$event.preventDefault(); addBenefit(card.id)">
+            <input
+              type="text"
+              [ngModel]="benefitDraft(card.id)"
+              (ngModelChange)="setBenefitDraft(card.id, $event)"
+              [name]="'benefit-' + card.id"
+              placeholder="Add a benefit…"
+              maxlength="160"
+            />
+            <select
+              [ngModel]="benefitCadence(card.id)"
+              (ngModelChange)="setBenefitCadence(card.id, $event)"
+              [name]="'cadence-' + card.id"
+            >
+              <option value="MONTHLY">Monthly</option>
+              <option value="YEARLY">Yearly</option>
+            </select>
+            <button type="submit" [disabled]="!benefitDraft(card.id).trim()">
+              <lucide-icon name="plus" [size]="13"></lucide-icon>
+            </button>
+          </form>
+          <button type="button" class="ghost benefits-reset" (click)="resetYearly(card.id)">
+            Reset {{ trackingYear() }}
+          </button>
+        </div>
+
+        <p class="ledger__hint">Tap a day to enter charges — they add into the Budget category you pick.</p>
+
+        <div class="day-list" *ngIf="categorySections().length; else noCategories">
+          <article
+            class="day-row"
+            *ngFor="let row of monthDays(); trackBy: trackDay"
+            [class.day-row--today]="row.isToday"
+            [class.day-row--active]="activeDay() === row.date"
+            [class.day-row--filled]="row.charges.length > 0"
+          >
+            <button type="button" class="day-row__head" (click)="activeDay() === row.date ? closeDay() : openDay(row.date)">
+              <span class="day-row__date">
+                <strong>{{ row.day }}</strong>
+                <em>{{ row.weekday }}</em>
+              </span>
+              <span class="day-row__summary" *ngIf="row.charges.length; else emptyDay">
+                <span class="day-chip" *ngFor="let charge of row.charges">
+                  {{ charge.categoryName }} {{ charge.amount | currency }}
+                </span>
+              </span>
+              <ng-template #emptyDay>
+                <span class="day-row__empty">No charges</span>
+              </ng-template>
+              <strong class="day-row__total" *ngIf="row.total">{{ row.total | currency }}</strong>
+              <lucide-icon [name]="activeDay() === row.date ? 'x' : 'plus'" [size]="14"></lucide-icon>
+            </button>
+
+            <div class="day-row__body" *ngIf="activeDay() === row.date">
+              <ul class="day-charges" *ngIf="row.charges.length">
+                <li *ngFor="let charge of row.charges">
+                  <div>
+                    <strong>{{ charge.categoryName }}</strong>
+                    <span>{{ charge.note || 'No note' }}</span>
+                  </div>
+                  <strong>{{ charge.amount | currency }}</strong>
+                  <button type="button" class="icon-danger" (click)="removeCharge(charge.id)" title="Delete">
+                    <lucide-icon name="trash-2" [size]="13"></lucide-icon>
+                  </button>
+                </li>
+              </ul>
+
+              <form class="day-form" (submit)="$event.preventDefault(); addDayCharge()">
+                <label class="day-form__amount">
+                  <span>$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    inputmode="decimal"
+                    placeholder="0.00"
+                    [ngModel]="dayAmount()"
+                    (ngModelChange)="dayAmount.set($event)"
+                    [name]="'amt-' + row.date"
+                    required
+                  />
+                </label>
+                <select
+                  [ngModel]="dayCategoryId()"
+                  (ngModelChange)="dayCategoryId.set($event)"
+                  [name]="'cat-' + row.date"
+                  required
+                >
+                  <optgroup *ngFor="let section of categorySections()" [label]="section.label">
+                    <option *ngFor="let cat of section.categories" [value]="cat.id">{{ cat.name }}</option>
+                  </optgroup>
+                </select>
+                <input
+                  type="text"
+                  maxlength="200"
+                  placeholder="Note (optional)"
+                  [ngModel]="dayNote()"
+                  (ngModelChange)="dayNote.set($event)"
+                  [name]="'note-' + row.date"
+                />
+                <button type="submit" [disabled]="!canAddDay()">Add</button>
+              </form>
+            </div>
+          </article>
+        </div>
+
+        <ng-template #noCategories>
+          <p class="ledger__empty">Add Budget categories first, then you can log card charges into them.</p>
+        </ng-template>
+      </section>
+    </div>
+  </ng-container>
+
+  <!-- Debt / memberships keep a simple card grid -->
+  <ng-template #otherKinds>
+    <div class="wallet-grid" *ngIf="items().length > 0 || editingId() === 'new'; else empty">
+      <article
+        class="account-card"
+        *ngFor="let item of items(); trackBy: trackAccount"
+        [class.account-card--planned]="item.status === 'PLANNED'"
+        [class.account-card--closed]="item.status === 'CLOSED'"
+        [style.--card-accent]="item.accent || 'var(--income)'"
+      >
+        <header class="account-card__top">
+          <div>
+            <p class="account-card__institution">{{ item.institution || activeTab().label }}</p>
+            <h3>{{ item.name }}</h3>
+          </div>
+          <span class="account-card__badge">{{ item.status | lowercase }}</span>
+        </header>
+
+        <dl class="account-card__meta">
+          <div *ngIf="item.annualFee != null">
+            <dt>Annual fee</dt>
+            <dd>{{ item.annualFee | currency }}</dd>
+          </div>
+          <div *ngIf="item.monthlyPayment != null">
+            <dt>Payment</dt>
+            <dd>{{ item.monthlyPayment | currency }}/mo</dd>
+          </div>
+          <div *ngIf="item.dueDay != null">
+            <dt>Due</dt>
+            <dd>Day {{ item.dueDay }}</dd>
+          </div>
+          <div *ngIf="item.renewsOn">
+            <dt>Renews</dt>
+            <dd>{{ item.renewsOn }}</dd>
+          </div>
+        </dl>
+
+        <p class="account-card__notes" *ngIf="item.notes">{{ item.notes }}</p>
+
+        <footer class="account-card__actions">
+          <button type="button" (click)="beginEdit(item)">Edit</button>
+          <button type="button" class="danger" (click)="remove(item.id)">Remove</button>
+        </footer>
+      </article>
+    </div>
+  </ng-template>
+
+  <form class="account-card account-card--editor" *ngIf="editingId()" (submit)="$event.preventDefault(); save()">
+    <h3>{{ editingId() === 'new' ? 'Add item' : 'Edit item' }}</h3>
+    <label>
+      <span>Name</span>
+      <input [ngModel]="draftName()" (ngModelChange)="draftName.set($event)" name="name" required />
+    </label>
+    <label>
+      <span>Institution</span>
+      <input [ngModel]="draftInstitution()" (ngModelChange)="draftInstitution.set($event)" name="institution" />
+    </label>
+    <label>
+      <span>Status</span>
+      <select [ngModel]="draftStatus()" (ngModelChange)="draftStatus.set($event)" name="status">
+        <option value="ACTIVE">Active</option>
+        <option value="PLANNED">Planned</option>
+        <option value="CLOSED">Closed</option>
+      </select>
+    </label>
+    <div class="editor-row">
+      <label>
+        <span>Annual fee</span>
+        <input type="number" step="0.01" [ngModel]="draftAnnualFee()" (ngModelChange)="draftAnnualFee.set($event)" name="fee" />
+      </label>
+      <label *ngIf="wallet.selectedKind() !== 'MEMBERSHIP'">
+        <span>Monthly payment</span>
+        <input type="number" step="0.01" [ngModel]="draftPayment()" (ngModelChange)="draftPayment.set($event)" name="payment" />
+      </label>
+      <label *ngIf="wallet.selectedKind() !== 'MEMBERSHIP'">
+        <span>Due day</span>
+        <input type="number" min="1" max="31" [ngModel]="draftDueDay()" (ngModelChange)="draftDueDay.set($event)" name="due" />
+      </label>
+      <label *ngIf="wallet.selectedKind() === 'MEMBERSHIP'">
+        <span>Renews on</span>
+        <input type="date" [ngModel]="draftRenewsOn()" (ngModelChange)="draftRenewsOn.set($event)" name="renews" />
+      </label>
+    </div>
+    <label>
+      <span>Notes</span>
+      <input [ngModel]="draftNotes()" (ngModelChange)="draftNotes.set($event)" name="notes" placeholder="Optional" />
+    </label>
+    <div class="editor-actions">
+      <button type="button" class="ghost" (click)="cancel()">Cancel</button>
+      <button type="submit" [disabled]="!draftName().trim()">Save</button>
+    </div>
+  </form>
 
   <ng-template #empty>
     <div class="wallet-empty glass-card">
@@ -292,9 +374,3 @@
     </div>
   </ng-template>
 </div>
-
-<app-card-charge
-  *ngIf="chargingAccount() as card"
-  [account]="card"
-  (closed)="closeCharges()"
-></app-card-charge>

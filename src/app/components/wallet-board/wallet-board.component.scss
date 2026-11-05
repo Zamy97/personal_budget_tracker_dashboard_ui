@@ -47,7 +47,6 @@
 .wallet-stat strong {
   font-size: 0.98rem;
   font-variant-numeric: tabular-nums;
-  line-height: 1.2;
 }
 
 .wallet-stat__of {
@@ -93,17 +92,35 @@
   color: var(--text-primary);
 }
 
+.wallet-month {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.35rem;
+  border-radius: 0.65rem;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--glass-border);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.wallet-month__btn,
+.wallet-month__today,
 .wallet__add,
 .wallet-empty button,
 .editor-actions button,
 .account-card__actions button,
-.benefit-add button {
+.benefit-add button,
+.day-form button,
+.ledger__header-meta .ghost,
+.ledger__header-meta .danger,
+.benefits-reset {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
   border: none;
-  border-radius: 0.55rem;
-  padding: 0.35rem 0.65rem;
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.55rem;
   background: var(--income);
   color: #062314;
   font: inherit;
@@ -112,195 +129,404 @@
   cursor: pointer;
 }
 
-.wallet-grid {
-  flex: 1 1 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15.5rem, 1fr));
-  grid-auto-rows: minmax(0, 1fr);
-  gap: 0.55rem;
-  min-height: 0;
-  overflow: hidden;
-  overflow-anchor: none;
-  align-content: stretch;
+.wallet-month__btn,
+.ledger__header-meta .ghost,
+.benefits-reset {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  border: 1px solid var(--glass-border);
 }
 
-.account-card {
-  position: relative;
-  padding: 0.65rem 0.7rem;
-  border-radius: 0.85rem;
+.ledger__header-meta .danger,
+.account-card__actions .danger {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  border: 1px solid var(--glass-border);
+}
+
+.ledger__header-meta .danger:hover,
+.account-card__actions .danger:hover {
+  color: var(--expense);
+  background: var(--expense-dim);
+}
+
+.wallet-month__today {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+/* ---- Credit card day ledger ---- */
+
+.card-ledger {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow: hidden;
+}
+
+.card-picker {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 0.1rem;
+}
+
+.card-picker__chip {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  min-width: 8.5rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--glass-border);
+  border-top: 3px solid var(--card-accent);
+  background: var(--glass-bg-mid);
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.card-picker__chip.active {
+  background: color-mix(in srgb, var(--card-accent) 16%, var(--glass-bg-mid));
+  border-color: color-mix(in srgb, var(--card-accent) 45%, var(--glass-border));
+}
+
+.card-picker__name {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.card-picker__chip strong {
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ledger {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.75rem;
+  border-radius: 0.9rem;
   background:
-    linear-gradient(145deg, color-mix(in srgb, var(--card-accent) 18%, transparent), transparent 55%),
+    linear-gradient(145deg, color-mix(in srgb, var(--card-accent) 14%, transparent), transparent 50%),
     var(--glass-bg-mid);
   border: 1px solid var(--glass-border);
   border-top: 3px solid var(--card-accent);
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  min-height: 0;
-  height: 100%;
   overflow: hidden;
-  overflow-anchor: none;
 }
 
-.account-card--planned {
-  opacity: 0.88;
-}
-
-.account-card--closed {
-  opacity: 0.55;
-  filter: grayscale(0.35);
-}
-
-.account-card__top {
+.ledger__header {
+  flex: 0 0 auto;
   display: flex;
   justify-content: space-between;
-  gap: 0.4rem;
-  flex: 0 0 auto;
+  gap: 0.75rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
 }
 
-.account-card__institution {
+.ledger__header p {
   margin: 0;
-  font-size: 0.58rem;
+  font-size: 0.6rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-muted);
 }
 
-.account-card h3 {
+.ledger__header h2 {
   margin: 0.1rem 0 0;
-  font-size: 0.92rem;
-  line-height: 1.2;
+  font-size: 1.15rem;
 }
 
-.account-card__badge {
-  align-self: start;
-  padding: 0.15rem 0.4rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--text-secondary);
-  font-size: 0.58rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.account-card__spend {
+.ledger__header-meta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.45rem;
-  padding: 0.45rem 0.5rem;
-  border-radius: 0.55rem;
-  background: rgba(0, 0, 0, 0.2);
-  flex: 0 0 auto;
+  gap: 0.4rem;
+  flex-wrap: wrap;
 }
 
-.account-card__spend > div {
+.ledger__spend {
   display: flex;
   flex-direction: column;
-  gap: 0.05rem;
-  min-width: 0;
+  align-items: flex-end;
+  margin-right: 0.35rem;
 }
 
-.account-card__spend span {
+.ledger__spend span {
   font-size: 0.58rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
 }
 
-.account-card__spend strong {
-  font-size: 0.95rem;
+.ledger__spend strong {
+  font-size: 1.05rem;
   font-variant-numeric: tabular-nums;
 }
 
-.account-card__charge-btn {
-  display: inline-flex;
+.benefits-toggle {
+  flex: 0 0 auto;
+  display: flex;
   align-items: center;
-  gap: 0.25rem;
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.4rem 0.55rem;
-  background: var(--income);
-  color: #062314;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--text-primary);
   font: inherit;
-  font-size: 0.7rem;
-  font-weight: 700;
+  font-size: 0.78rem;
+  font-weight: 600;
   cursor: pointer;
-  white-space: nowrap;
 }
 
-.account-card__progress {
+.benefits-toggle em {
+  margin-left: 0.4rem;
+  font-style: normal;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.benefits-toggle lucide-icon {
+  transition: transform 0.15s ease;
+}
+
+.benefits-toggle[aria-expanded='true'] lucide-icon {
+  transform: rotate(90deg);
+}
+
+.benefits-panel {
+  flex: 0 0 auto;
+  max-height: 12rem;
+  overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  flex: 0 0 auto;
+  gap: 0.45rem;
+  padding: 0.55rem;
+  border-radius: 0.65rem;
+  background: rgba(0, 0, 0, 0.16);
+  border: 1px solid var(--glass-border);
 }
 
-.account-card__progress-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  font-size: 0.64rem;
+.ledger__hint {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: 0.72rem;
   color: var(--text-muted);
 }
 
-.account-card__progress-row strong {
-  color: var(--text-primary);
-  font-size: 0.85rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.account-card__progress-hint {
-  font-size: 0.62rem;
-  color: var(--warn);
-}
-
-.account-card__tracker-note {
+.ledger__empty {
   margin: 0;
-  font-size: 0.7rem;
+  padding: 1rem;
   color: var(--text-secondary);
-  line-height: 1.3;
+  font-size: 0.8rem;
 }
 
-.account-card__meter-track {
-  height: 0.32rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+.day-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  overflow-anchor: none;
+}
+
+.day-row {
+  border-radius: 0.65rem;
+  border: 1px solid transparent;
+  background: rgba(0, 0, 0, 0.14);
   overflow: hidden;
 }
 
-.account-card__meter-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: var(--card-accent);
+.day-row--today {
+  border-color: color-mix(in srgb, var(--card-accent) 40%, transparent);
 }
 
-.account-card__meta {
-  margin: 0;
+.day-row--active {
+  border-color: color-mix(in srgb, var(--income) 45%, transparent);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.day-row--filled .day-row__empty {
+  display: none;
+}
+
+.day-row__head {
+  width: 100%;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.25rem 0.4rem;
-  flex: 0 0 auto;
+  grid-template-columns: 3.4rem minmax(0, 1fr) auto auto;
+  gap: 0.45rem;
+  align-items: center;
+  padding: 0.45rem 0.55rem;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
 }
 
-.account-card__meta div {
+.day-row__date {
   display: flex;
   flex-direction: column;
-  gap: 0.02rem;
+  line-height: 1.1;
 }
 
-.account-card__meta dt {
-  font-size: 0.55rem;
+.day-row__date strong {
+  font-size: 0.95rem;
+}
+
+.day-row__date em {
+  font-style: normal;
+  font-size: 0.62rem;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+}
+
+.day-row__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.day-chip {
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glass-border);
+  font-size: 0.66rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.day-row__empty {
+  font-size: 0.72rem;
   color: var(--text-muted);
 }
 
-.account-card__meta dd {
-  margin: 0;
-  font-size: 0.72rem;
+.day-row__total {
+  font-size: 0.82rem;
   font-variant-numeric: tabular-nums;
 }
+
+.day-row__body {
+  padding: 0 0.55rem 0.55rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.day-charges {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.day-charges li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0.35rem 0.45rem;
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.day-charges li div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  min-width: 0;
+}
+
+.day-charges strong {
+  font-size: 0.78rem;
+}
+
+.day-charges span {
+  font-size: 0.66rem;
+  color: var(--text-muted);
+}
+
+.icon-danger {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.15rem;
+  border-radius: 0.35rem;
+}
+
+.icon-danger:hover {
+  color: var(--expense);
+  background: var(--expense-dim);
+}
+
+.day-form {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(7rem, 1fr) minmax(6rem, 1.1fr) auto;
+  gap: 0.35rem;
+}
+
+.day-form__amount {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.day-form__amount span {
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.day-form__amount input {
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  width: 100%;
+  padding: 0.5rem 0;
+  outline: none;
+}
+
+.day-form select,
+.day-form > input[type='text'] {
+  width: 100%;
+  min-width: 0;
+  padding: 0.5rem 0.55rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.day-form button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* ---- Benefits (shared) ---- */
 
 .benefit-list {
   list-style: none;
@@ -309,10 +535,6 @@
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: auto;
-  overflow-anchor: none;
 }
 
 .benefit-list__item {
@@ -323,7 +545,6 @@
   padding: 0.45rem 0.5rem;
   border-radius: 0.55rem;
   background: rgba(0, 0, 0, 0.18);
-  border: 1px solid transparent;
 }
 
 .benefit-list__item--monthly {
@@ -344,7 +565,6 @@
 .benefit-list__check {
   width: 1.35rem;
   height: 1.35rem;
-  margin-top: 0.05rem;
   border-radius: 0.35rem;
   border: 1px solid var(--glass-border-strong);
   background: rgba(255, 255, 255, 0.04);
@@ -354,12 +574,6 @@
   justify-content: center;
   cursor: pointer;
   padding: 0;
-}
-
-.benefit-list__item--used .benefit-list__check,
-.benefit-list__item--complete .benefit-list__check {
-  background: var(--income-dim);
-  border-color: rgba(0, 217, 126, 0.45);
 }
 
 .benefit-list__body {
@@ -375,7 +589,6 @@
 
 .benefit-list__heading {
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
   gap: 0.3rem;
 }
@@ -383,7 +596,6 @@
 .benefit-list__label {
   font-size: 0.78rem;
   font-weight: 600;
-  line-height: 1.25;
 }
 
 .benefit-list__meta {
@@ -395,20 +607,14 @@
   border: none;
   background: transparent;
   color: var(--text-muted);
-  padding: 0.15rem;
   cursor: pointer;
+  padding: 0.15rem;
   border-radius: 0.35rem;
-  flex-shrink: 0;
 }
 
 .benefit-list__remove:hover {
   color: var(--expense);
   background: var(--expense-dim);
-}
-
-.benefit-list__completed-toggle {
-  list-style: none;
-  padding: 0.1rem 0 0;
 }
 
 .benefit-list__completed-toggle button {
@@ -419,7 +625,6 @@
   font-size: 0.7rem;
   font-weight: 600;
   cursor: pointer;
-  padding: 0.2rem 0;
   text-decoration: underline;
   text-underline-offset: 0.15rem;
 }
@@ -431,29 +636,16 @@
 }
 
 .month-grid__cell {
-  min-height: 1.85rem;
+  min-height: 1.75rem;
   border-radius: 0.4rem;
   border: 1px solid var(--glass-border);
   background: rgba(255, 255, 255, 0.03);
   color: var(--text-secondary);
   font: inherit;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.01em;
   cursor: pointer;
-  padding: 0.25rem 0.1rem;
-  transition: none;
-}
-
-.month-grid__cell:hover {
-  border-color: var(--glass-border-strong);
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.month-grid__cell--current {
-  border-color: color-mix(in srgb, var(--card-accent) 55%, var(--glass-border));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--card-accent) 35%, transparent);
+  padding: 0.2rem 0.1rem;
 }
 
 .month-grid__cell--used {
@@ -462,11 +654,14 @@
   color: var(--income-light);
 }
 
+.month-grid__cell--current {
+  border-color: color-mix(in srgb, var(--card-accent) 55%, var(--glass-border));
+}
+
 .benefit-add {
   display: grid;
   grid-template-columns: 1fr auto auto;
   gap: 0.3rem;
-  flex: 0 0 auto;
 }
 
 .benefit-add input,
@@ -481,55 +676,112 @@
   font-size: 0.72rem;
 }
 
-.benefit-add select {
-  width: auto;
-  min-width: 5rem;
-}
-
-.benefit-add button {
-  padding: 0.35rem 0.45rem;
-}
-
 .benefit-add button:disabled {
   opacity: 0.4;
   cursor: default;
 }
 
+/* ---- Simple cards (debt / membership) ---- */
+
+.wallet-grid {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15.5rem, 1fr));
+  gap: 0.55rem;
+  min-height: 0;
+  overflow: auto;
+  align-content: start;
+}
+
+.account-card {
+  padding: 0.7rem;
+  border-radius: 0.85rem;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--card-accent) 18%, transparent), transparent 55%),
+    var(--glass-bg-mid);
+  border: 1px solid var(--glass-border);
+  border-top: 3px solid var(--card-accent);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.account-card--planned {
+  opacity: 0.88;
+}
+
+.account-card--closed {
+  opacity: 0.55;
+  filter: grayscale(0.35);
+}
+
+.account-card__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.account-card__institution {
+  margin: 0;
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.account-card h3 {
+  margin: 0.1rem 0 0;
+  font-size: 0.95rem;
+}
+
+.account-card__badge {
+  align-self: start;
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  font-size: 0.58rem;
+  text-transform: uppercase;
+}
+
+.account-card__meta {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem 0.4rem;
+}
+
+.account-card__meta dt {
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.account-card__meta dd {
+  margin: 0;
+  font-size: 0.75rem;
+}
+
 .account-card__notes {
   margin: 0;
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   color: var(--text-secondary);
-  flex: 0 0 auto;
 }
 
 .account-card__actions {
   margin-top: auto;
   display: flex;
-  flex-wrap: wrap;
   gap: 0.3rem;
-  flex: 0 0 auto;
-}
-
-.account-card__actions button,
-.editor-actions .ghost,
-.account-card__actions .ghost {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--text-secondary);
-  border: 1px solid var(--glass-border);
-}
-
-.account-card__actions .danger:hover {
-  color: var(--expense);
-  background: var(--expense-dim);
 }
 
 .account-card--editor {
-  gap: 0.45rem;
-  overflow: auto;
-}
-
-.account-card--editor h3 {
-  margin: 0;
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  width: min(22rem, calc(100% - 2rem));
+  z-index: 5;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
 }
 
 .account-card--editor label {
@@ -562,11 +814,10 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.35rem;
-  margin-top: 0.15rem;
 }
 
 .wallet-empty {
-  grid-column: 1 / -1;
+  flex: 1;
   padding: 1.5rem 1rem;
   text-align: center;
   display: flex;
@@ -575,13 +826,10 @@
   justify-content: center;
   gap: 0.6rem;
   color: var(--text-secondary);
-  min-height: 12rem;
 }
 
-@media (max-width: 1100px) {
-  .wallet-grid {
-    grid-template-columns: repeat(auto-fit, minmax(14.5rem, 1fr));
-  }
+.wallet {
+  position: relative;
 }
 
 @media (max-width: 800px) {
@@ -599,14 +847,18 @@
     grid-template-columns: 1fr;
   }
 
-  .wallet-grid {
+  .card-ledger,
+  .ledger,
+  .day-list {
     overflow: visible;
-    grid-auto-rows: auto;
   }
 
-  .account-card {
-    height: auto;
-    min-height: 18rem;
+  .day-form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .day-form button {
+    grid-column: 1 / -1;
   }
 
   .editor-row {

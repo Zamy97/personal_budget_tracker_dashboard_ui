@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
-import { CardChargeComponent } from '../card-charge/card-charge.component';
 import {
   AccountBenefit,
   AccountKind,
@@ -14,10 +13,27 @@ import {
 import { BudgetService } from '../../services/budget.service';
 import { WalletService, benefitOpenValue, monthsUsedInYear } from '../../services/wallet.service';
 
+interface DayCharge {
+  id: string;
+  categoryId: string;
+  categoryName: string;
+  note: string;
+  amount: number;
+}
+
+interface MonthDayRow {
+  day: number;
+  date: string;
+  weekday: string;
+  isToday: boolean;
+  charges: DayCharge[];
+  total: number;
+}
+
 @Component({
   selector: 'app-wallet-board',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, CardChargeComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './wallet-board.component.html',
   styleUrls: ['./wallet-board.component.scss'],
 })
@@ -36,9 +52,17 @@ export class WalletBoardComponent {
   draftAccent = signal('');
   newBenefitLabel = signal<Record<string, string>>({});
   newBenefitCadence = signal<Record<string, 'MONTHLY' | 'YEARLY'>>({});
-  /** When true for an account id, completed benefits stay visible so they can be unchecked. */
   showCompleted = signal<Record<string, boolean>>({});
-  chargingAccount = signal<TrackedAccount | null>(null);
+  benefitsOpen = signal<Record<string, boolean>>({});
+
+  /** Focused credit card for the day ledger. */
+  focusedCardId = signal<string | null>(null);
+  /** Which day row is open for quick entry (YYYY-MM-DD). */
+  activeDay = signal<string | null>(null);
+  dayAmount = signal<number | null>(null);
+  dayNote = signal('');
+  dayCategoryId = signal('');
+  lastCategoryByCard = signal<Record<string, string>>({});
 
   monthLabels = MONTH_LABELS;
   monthIndexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
@@ -49,24 +73,142 @@ export class WalletBoardComponent {
   editingId = this.wallet.editingId;
   trackingYear = this.wallet.trackingYear;
   currentMonthKey = yearMonthKey(new Date().getFullYear(), new Date().getMonth());
+  categorySections = this.budget.allCategoriesGrouped;
+
+  focusedCard = computed(() => {
+    const cards = this.items();
+    if (this.wallet.selectedKind() !== 'CREDIT_CARD' || !cards.length) {
+      return null;
+    }
+    const id = this.focusedCardId();
+    return cards.find((c) => c.id === id) ?? cards[0];
+  });
+
+  monthDays = computed(() => {
+    const card = this.focusedCard();
+    if (!card) {
+      return [] as MonthDayRow[];
+    }
+    const month = this.budget.selectedMonth();
+    const [year, monthNum] = month.split('-').map(Number);
+    const daysInMonth = new Date(year, monthNum, 0).getDate();
+    const today = new Date();
+    const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const names = new Map(this.budget.categories().map((c) => [c.id, c.name]));
+    const byDay = new Map<string, DayCharge[]>();
+    for (const item of this.budget.lineItemsForAccount(card.id)) {
+      const list = byDay.get(item.date) ?? [];
+      list.push({
+        id: item.id,
+        categoryId: item.categoryId,
+        categoryName: names.get(item.categoryId) ?? 'Category',
+        note: item.note,
+        amount: item.amount,
+      });
+      byDay.set(item.date, list);
+    }
+
+    const rows: MonthDayRow[] = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = `${month}-${String(day).padStart(2, '0')}`;
+      const charges = byDay.get(date) ?? [];
+      rows.push({
+        day,
+        date,
+        weekday: new Date(year, monthNum - 1, day).toLocaleDateString(undefined, { weekday: 'short' }),
+        isToday: date === todayIso,
+        charges,
+        total: charges.reduce((sum, c) => sum + c.amount, 0),
+      });
+    }
+    return rows;
+  });
 
   trackAccount = (_: number, account: TrackedAccount): string => account.id;
   trackBenefit = (_: number, benefit: AccountBenefit): string => benefit.id;
+  trackDay = (_: number, row: MonthDayRow): string => row.date;
 
   selectTab(kind: AccountKind): void {
     this.wallet.selectKind(kind);
+    this.activeDay.set(null);
+    if (kind === 'CREDIT_CARD') {
+      const first = this.wallet.accountsForSelected()[0];
+      this.focusedCardId.set(first?.id ?? null);
+    }
   }
 
-  openCharges(account: TrackedAccount): void {
-    this.chargingAccount.set(account);
-  }
-
-  closeCharges(): void {
-    this.chargingAccount.set(null);
+  focusCard(account: TrackedAccount): void {
+    this.focusedCardId.set(account.id);
+    this.activeDay.set(null);
+    this.benefitsOpen.update((map) => ({ ...map, [account.id]: false }));
   }
 
   cardSpend(accountId: string): number {
     return this.budget.accountSpendThisMonth(accountId);
+  }
+
+  previousMonth(): void {
+    this.budget.goToPreviousMonth();
+    this.activeDay.set(null);
+  }
+
+  nextMonth(): void {
+    this.budget.goToNextMonth();
+    this.activeDay.set(null);
+  }
+
+  jumpToToday(): void {
+    this.budget.goToCurrentMonth();
+    const today = new Date();
+    const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    this.openDay(iso);
+  }
+
+  openDay(date: string): void {
+    const card = this.focusedCard();
+    this.activeDay.set(date);
+    this.dayAmount.set(null);
+    this.dayNote.set('');
+    const remembered = card ? this.lastCategoryByCard()[card.id] : '';
+    const sections = this.categorySections();
+    const fallback =
+      sections.find((s) => s.group === 'expenses')?.categories[0]?.id ?? sections[0]?.categories[0]?.id ?? '';
+    this.dayCategoryId.set(remembered || fallback);
+  }
+
+  closeDay(): void {
+    this.activeDay.set(null);
+  }
+
+  canAddDay(): boolean {
+    const amount = this.dayAmount();
+    return !!this.focusedCard() && !!this.activeDay() && !!this.dayCategoryId() && amount != null && Number.isFinite(amount);
+  }
+
+  addDayCharge(): void {
+    const card = this.focusedCard();
+    const date = this.activeDay();
+    const amount = this.dayAmount();
+    const categoryId = this.dayCategoryId();
+    if (!card || !date || amount == null || !categoryId || !this.canAddDay()) {
+      return;
+    }
+    this.budget.addLineItem(categoryId, date, this.dayNote().trim(), amount, card.id);
+    this.lastCategoryByCard.update((map) => ({ ...map, [card.id]: categoryId }));
+    this.dayAmount.set(null);
+    this.dayNote.set('');
+  }
+
+  removeCharge(id: string): void {
+    this.budget.deleteLineItem(id);
+  }
+
+  toggleBenefits(accountId: string): void {
+    this.benefitsOpen.update((map) => ({ ...map, [accountId]: !map[accountId] }));
+  }
+
+  benefitsExpanded(accountId: string): boolean {
+    return !!this.benefitsOpen()[accountId];
   }
 
   beginCreate(): void {
@@ -128,6 +270,9 @@ export class WalletBoardComponent {
 
   remove(id: string): void {
     this.wallet.remove(id);
+    if (this.focusedCardId() === id) {
+      this.focusedCardId.set(null);
+    }
   }
 
   benefitProgress(account: TrackedAccount): { done: number; total: number; leftValue: number } {
