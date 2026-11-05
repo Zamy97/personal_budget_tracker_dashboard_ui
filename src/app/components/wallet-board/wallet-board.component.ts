@@ -31,8 +31,8 @@ interface MonthDayRow {
   total: number;
 }
 
-/** Distinct card colors so chips/ledgers don't all look the same. */
-const CARD_PALETTE = ['#38bdf8', '#f5a623', '#a78bfa', '#34d399', '#fb7185', '#fbbf24', '#e879c9', '#60a5fa'];
+/** Bold card colors — always used by index so every chip reads differently. */
+const CARD_PALETTE = ['#22d3ee', '#f59e0b', '#c084fc', '#34d399', '#fb7185', '#60a5fa', '#f472b6', '#a3e635'];
 
 @Component({
   selector: 'app-wallet-board',
@@ -143,16 +143,8 @@ export class WalletBoardComponent {
   trackBenefit = (_: number, benefit: AccountBenefit): string => benefit.id;
   trackDay = (_: number, row: MonthDayRow): string => row.date;
 
-  /** Prefer a unique palette color when several cards share the same stored accent. */
-  chipAccent(account: TrackedAccount, index: number): string {
-    const cards = this.items();
-    const stored = (account.accent || '').trim().toLowerCase();
-    const colliding = stored
-      ? cards.filter((c) => (c.accent || '').trim().toLowerCase() === stored).length > 1
-      : true;
-    if (!colliding && stored && stored !== '#f97066' && stored !== '#f5a623') {
-      return account.accent;
-    }
+  /** Stable bold color per card position so the picker is easy to scan. */
+  chipAccent(_account: TrackedAccount, index: number): string {
     return CARD_PALETTE[index % CARD_PALETTE.length];
   }
 

@@ -32,9 +32,37 @@
   border-radius: 0.7rem;
   background: var(--glass-bg-mid);
   border: 1px solid var(--glass-border);
+  border-top: 3px solid var(--income);
   display: flex;
   flex-direction: column;
   gap: 0.05rem;
+}
+
+.wallet-stat:nth-child(1) {
+  border-top-color: var(--income);
+  background: linear-gradient(180deg, rgba(0, 217, 126, 0.14), var(--glass-bg-mid) 55%);
+}
+
+.wallet-stat:nth-child(1) strong {
+  color: var(--income-light);
+}
+
+.wallet-stat:nth-child(2) {
+  border-top-color: #c084fc;
+  background: linear-gradient(180deg, rgba(192, 132, 252, 0.16), var(--glass-bg-mid) 55%);
+}
+
+.wallet-stat:nth-child(2) strong {
+  color: #e9d5ff;
+}
+
+.wallet-stat:nth-child(3) {
+  border-top-color: #fb7185;
+  background: linear-gradient(180deg, rgba(251, 113, 133, 0.14), var(--glass-bg-mid) 55%);
+}
+
+.wallet-stat:nth-child(3) strong {
+  color: #fecdd3;
 }
 
 .wallet-stat__label {
@@ -88,8 +116,9 @@
 }
 
 .wallet-tabs__btn.active {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-primary);
+  background: color-mix(in srgb, var(--income) 22%, rgba(255, 255, 255, 0.06));
+  color: var(--income-light);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--income) 45%, transparent);
 }
 
 .wallet-month {
@@ -180,40 +209,42 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 0.12rem;
-  min-width: 8.5rem;
-  padding: 0.55rem 0.7rem 0.55rem 0.65rem;
-  border-radius: 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--card-accent) 35%, var(--glass-border));
-  border-left: 4px solid var(--card-accent);
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--card-accent) 18%, transparent), transparent 60%),
-    var(--glass-bg-mid);
-  color: var(--text-primary);
+  min-width: 8.8rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.8rem;
+  border: 2px solid var(--card-accent);
+  background: color-mix(in srgb, var(--card-accent) 28%, #10161e);
+  color: #fff;
   font: inherit;
   cursor: pointer;
   text-align: left;
-  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  transition: filter 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card-picker__chip:not(.active) {
+  filter: saturate(0.85) brightness(0.88);
 }
 
 .card-picker__chip.active {
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--card-accent) 28%, transparent), transparent 65%),
-    var(--glass-bg-strong);
-  border-color: color-mix(in srgb, var(--card-accent) 70%, var(--glass-border));
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--card-accent) 35%, transparent);
-  transform: translateY(-1px);
+  filter: none;
+  background: color-mix(in srgb, var(--card-accent) 48%, #0b1016);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--card-accent) 55%, transparent),
+    0 8px 20px color-mix(in srgb, var(--card-accent) 28%, transparent);
+  transform: translateY(-2px);
 }
 
 .card-picker__name {
   font-size: 0.78rem;
-  font-weight: 600;
-  color: color-mix(in srgb, var(--card-accent) 55%, var(--text-primary));
+  font-weight: 700;
+  color: #fff;
 }
 
 .card-picker__chip strong {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-variant-numeric: tabular-nums;
-  color: var(--card-accent);
+  color: #fff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
 }
 
 .ledger {
@@ -225,10 +256,10 @@
   padding: 0.75rem;
   border-radius: 0.9rem;
   background:
-    linear-gradient(145deg, color-mix(in srgb, var(--card-accent) 14%, transparent), transparent 50%),
-    var(--glass-bg-mid);
-  border: 1px solid var(--glass-border);
-  border-top: 3px solid var(--card-accent);
+    linear-gradient(160deg, color-mix(in srgb, var(--card-accent) 32%, transparent), transparent 42%),
+    #141b24;
+  border: 1px solid color-mix(in srgb, var(--card-accent) 45%, transparent);
+  border-top: 4px solid var(--card-accent);
   overflow: hidden;
 }
 
@@ -287,22 +318,23 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 0.5rem 0.65rem;
-  border-radius: 0.6rem;
-  border: 1px solid color-mix(in srgb, var(--card-accent) 30%, var(--glass-border));
-  background: color-mix(in srgb, var(--card-accent) 10%, rgba(0, 0, 0, 0.18));
-  color: var(--text-primary);
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.65rem;
+  border: 2px solid var(--card-accent);
+  background: color-mix(in srgb, var(--card-accent) 32%, #121820);
+  color: #fff;
   font: inherit;
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
   cursor: pointer;
 }
 
 .benefits-toggle em {
   margin-left: 0.4rem;
   font-style: normal;
-  color: var(--card-accent);
-  font-weight: 700;
+  color: #fff;
+  font-weight: 800;
+  opacity: 0.9;
 }
 
 .benefits-toggle lucide-icon {
@@ -329,8 +361,13 @@
 .ledger__hint {
   flex: 0 0 auto;
   margin: 0;
-  font-size: 0.72rem;
-  color: var(--text-muted);
+  padding: 0.35rem 0.55rem;
+  border-radius: 0.5rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #e0f2fe;
+  background: #0c4a6e;
+  border: 1px solid #38bdf8;
 }
 
 .ledger__empty {
@@ -346,41 +383,46 @@
   overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.4rem;
   overflow-anchor: none;
 }
 
 .day-row {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  padding: 0.4rem 0.5rem 0.45rem;
-  border-radius: 0.7rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-left: 3px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.03);
+  gap: 0.35rem;
+  padding: 0.45rem 0.55rem 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid #2b3a4f;
+  border-left: 4px solid #60a5fa;
+  background: #182333;
 }
 
 .day-row:nth-child(even) {
-  background: rgba(255, 255, 255, 0.055);
+  background: #1c2940;
 }
 
 .day-row--weekend {
-  border-left-color: color-mix(in srgb, var(--warn) 70%, transparent);
-  background: color-mix(in srgb, var(--warn) 7%, rgba(255, 255, 255, 0.03));
+  border-left-color: #f59e0b;
+  border-color: #5a4520;
+  background: #2a2114;
+}
+
+.day-row--weekend:nth-child(even) {
+  background: #322714;
 }
 
 .day-row--today {
-  border-color: color-mix(in srgb, var(--card-accent) 55%, transparent);
+  border-color: var(--card-accent);
   border-left-color: var(--card-accent);
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--card-accent) 16%, transparent), transparent 55%),
-    rgba(255, 255, 255, 0.05);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--card-accent) 20%, transparent);
+  border-width: 2px;
+  border-left-width: 4px;
+  background: color-mix(in srgb, var(--card-accent) 28%, #182333);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--card-accent) 40%, transparent);
 }
 
 .day-row--filled {
-  border-left-color: var(--income);
+  border-left-color: #34d399;
 }
 
 .day-row--filled.day-row--today {
@@ -393,7 +435,7 @@
 
 .day-row__head {
   display: grid;
-  grid-template-columns: 3.6rem minmax(0, 1fr) auto;
+  grid-template-columns: 3.7rem minmax(0, 1fr) auto;
   gap: 0.45rem;
   align-items: center;
 }
@@ -404,48 +446,49 @@
   align-items: center;
   justify-content: center;
   gap: 0.05rem;
-  min-height: 2.35rem;
+  min-height: 2.4rem;
   padding: 0.2rem 0.15rem;
-  border-radius: 0.55rem;
-  background: rgba(0, 0, 0, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.6rem;
+  background: #24344c;
+  border: 1px solid #3b5270;
   line-height: 1.05;
 }
 
 .day-row--weekend .day-row__date {
-  background: color-mix(in srgb, var(--warn) 14%, rgba(0, 0, 0, 0.28));
-  border-color: color-mix(in srgb, var(--warn) 35%, transparent);
+  background: #4a3510;
+  border-color: #f59e0b;
 }
 
 .day-row--today .day-row__date {
-  background: color-mix(in srgb, var(--card-accent) 28%, rgba(0, 0, 0, 0.2));
-  border-color: color-mix(in srgb, var(--card-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--card-accent) 55%, #1a2030);
+  border-color: #fff;
 }
 
 .day-row__date strong {
-  font-size: 0.98rem;
+  font-size: 1rem;
   font-variant-numeric: tabular-nums;
+  color: #f8fafc;
 }
 
 .day-row--today .day-row__date strong {
-  color: color-mix(in srgb, var(--card-accent) 40%, #fff);
+  color: #fff;
 }
 
 .day-row__date em {
   font-style: normal;
   font-size: 0.58rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.04em;
-  color: var(--text-muted);
+  color: #93c5fd;
   text-transform: uppercase;
 }
 
 .day-row--weekend .day-row__date em {
-  color: var(--warn);
+  color: #fcd34d;
 }
 
 .day-row--today .day-row__date em {
-  color: color-mix(in srgb, var(--card-accent) 70%, #fff);
+  color: #fff;
 }
 
 .day-row__summary {
@@ -456,25 +499,27 @@
 }
 
 .day-chip {
-  padding: 0.15rem 0.4rem;
+  padding: 0.18rem 0.45rem;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--income) 14%, rgba(255, 255, 255, 0.04));
-  border: 1px solid color-mix(in srgb, var(--income) 35%, var(--glass-border));
+  background: #065f46;
+  border: 1px solid #34d399;
   font-size: 0.66rem;
-  color: var(--income-light);
+  font-weight: 700;
+  color: #a7f3d0;
   white-space: nowrap;
 }
 
 .day-row__empty {
-  font-size: 0.72rem;
-  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #7dd3fc;
 }
 
 .day-row__total {
-  font-size: 0.84rem;
-  font-weight: 700;
+  font-size: 0.9rem;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
-  color: var(--income);
+  color: #34d399;
 }
 
 .day-charges {
@@ -491,10 +536,10 @@
   grid-template-columns: 1fr auto auto;
   gap: 0.4rem;
   align-items: center;
-  padding: 0.35rem 0.45rem;
-  border-radius: 0.45rem;
-  background: color-mix(in srgb, var(--income) 8%, rgba(255, 255, 255, 0.03));
-  border: 1px solid color-mix(in srgb, var(--income) 18%, transparent);
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.5rem;
+  background: #064e3b;
+  border: 1px solid #34d399;
 }
 
 .day-charges li div {
@@ -506,35 +551,36 @@
 
 .day-charges strong {
   font-size: 0.78rem;
+  color: #ecfdf5;
 }
 
 .day-charges li > strong {
-  color: var(--income-light);
+  color: #6ee7b7;
 }
 
 .day-charges span {
   font-size: 0.66rem;
-  color: var(--text-muted);
+  color: #a7f3d0;
 }
 
 .icon-danger {
   border: none;
   background: transparent;
-  color: var(--text-muted);
+  color: #fda4af;
   cursor: pointer;
   padding: 0.15rem;
   border-radius: 0.35rem;
 }
 
 .icon-danger:hover {
-  color: var(--expense);
-  background: var(--expense-dim);
+  color: #fff;
+  background: #be123c;
 }
 
 .day-form {
   display: grid;
-  grid-template-columns: 6.5rem minmax(7rem, 1fr) minmax(6rem, 1.1fr) auto;
-  gap: 0.35rem;
+  grid-template-columns: 6.6rem minmax(7rem, 1fr) minmax(6rem, 1.1fr) auto;
+  gap: 0.4rem;
 }
 
 .day-form__amount {
@@ -542,58 +588,69 @@
   align-items: center;
   gap: 0.25rem;
   padding: 0 0.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--income) 45%, var(--glass-border));
-  background: color-mix(in srgb, var(--income) 12%, rgba(0, 0, 0, 0.35));
+  border-radius: 0.55rem;
+  border: 2px solid #34d399;
+  background: #064e3b;
 }
 
 .day-form__amount span {
-  color: var(--income);
-  font-weight: 700;
+  color: #6ee7b7;
+  font-weight: 800;
 }
 
 .day-form__amount input {
   border: none;
   background: transparent;
-  color: var(--income-light);
+  color: #ecfdf5;
   font: inherit;
-  font-size: 0.92rem;
-  font-weight: 700;
+  font-size: 0.95rem;
+  font-weight: 800;
   width: 100%;
   padding: 0.45rem 0;
   outline: none;
 }
 
 .day-form__amount input::placeholder {
-  color: color-mix(in srgb, var(--income) 45%, transparent);
+  color: #6ee7b7;
+  opacity: 0.7;
 }
 
 .day-form select {
   width: 100%;
   min-width: 0;
   padding: 0.45rem 0.55rem;
-  border-radius: 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--info) 45%, var(--glass-border));
-  background: color-mix(in srgb, var(--info) 14%, rgba(0, 0, 0, 0.35));
-  color: #c7d2fe;
+  border-radius: 0.55rem;
+  border: 2px solid #c084fc;
+  background: #4c1d95;
+  color: #f5f3ff;
   font: inherit;
   font-size: 0.78rem;
+  font-weight: 700;
 }
 
 .day-form > input[type='text'] {
   width: 100%;
   min-width: 0;
   padding: 0.45rem 0.55rem;
-  border-radius: 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--warn) 30%, var(--glass-border));
-  background: color-mix(in srgb, var(--warn) 8%, rgba(0, 0, 0, 0.35));
-  color: var(--text-primary);
+  border-radius: 0.55rem;
+  border: 2px solid #f59e0b;
+  background: #78350f;
+  color: #fffbeb;
   font: inherit;
   font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .day-form > input[type='text']::placeholder {
-  color: color-mix(in srgb, var(--warn) 55%, var(--text-muted));
+  color: #fcd34d;
+  opacity: 0.85;
+}
+
+.day-form button {
+  background: #059669 !important;
+  color: #ecfdf5 !important;
+  border: 2px solid #34d399 !important;
+  font-weight: 800 !important;
 }
 
 .day-form button:disabled {
