@@ -57,10 +57,10 @@
         <button
           type="button"
           class="card-picker__chip"
-          *ngFor="let item of items(); trackBy: trackAccount"
+          *ngFor="let item of items(); let i = index; trackBy: trackAccount"
           role="tab"
           [class.active]="focusedCard()?.id === item.id"
-          [style.--card-accent]="item.accent || 'var(--income)'"
+          [style.--card-accent]="chipAccent(item, i)"
           (click)="focusCard(item)"
         >
           <span class="card-picker__name">{{ item.name }}</span>
@@ -68,7 +68,7 @@
         </button>
       </div>
 
-      <section class="ledger" *ngIf="focusedCard() as card" [style.--card-accent]="card.accent || 'var(--income)'">
+      <section class="ledger" *ngIf="focusedCard() as card" [style.--card-accent]="focusedAccent()">
         <header class="ledger__header">
           <div>
             <p>{{ card.institution }}</p>
@@ -194,6 +194,7 @@
             class="day-row"
             *ngFor="let row of monthDays(); trackBy: trackDay"
             [class.day-row--today]="row.isToday"
+            [class.day-row--weekend]="row.isWeekend"
             [class.day-row--filled]="row.charges.length > 0"
           >
             <div class="day-row__head">

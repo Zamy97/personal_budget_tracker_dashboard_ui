@@ -26,9 +26,13 @@ interface MonthDayRow {
   date: string;
   weekday: string;
   isToday: boolean;
+  isWeekend: boolean;
   charges: DayCharge[];
   total: number;
 }
+
+/** Distinct card colors so chips/ledgers don't all look the same. */
+const CARD_PALETTE = ['#38bdf8', '#f5a623', '#a78bfa', '#34d399', '#fb7185', '#fbbf24', '#e879c9', '#60a5fa'];
 
 @Component({
   selector: 'app-wallet-board',
@@ -83,6 +87,16 @@ export class WalletBoardComponent {
     return cards.find((c) => c.id === id) ?? cards[0];
   });
 
+  focusedAccent = computed(() => {
+    const card = this.focusedCard();
+    if (!card) {
+      return CARD_PALETTE[0];
+    }
+    const cards = this.items();
+    const index = Math.max(0, cards.findIndex((c) => c.id === card.id));
+    return this.chipAccent(card, index);
+  });
+
   monthDays = computed(() => {
     const card = this.focusedCard();
     if (!card) {
@@ -111,11 +125,13 @@ export class WalletBoardComponent {
     for (let day = 1; day <= daysInMonth; day++) {
       const date = `${month}-${String(day).padStart(2, '0')}`;
       const charges = byDay.get(date) ?? [];
+      const weekdayIndex = new Date(year, monthNum - 1, day).getDay();
       rows.push({
         day,
         date,
         weekday: new Date(year, monthNum - 1, day).toLocaleDateString(undefined, { weekday: 'short' }),
         isToday: date === todayIso,
+        isWeekend: weekdayIndex === 0 || weekdayIndex === 6,
         charges,
         total: charges.reduce((sum, c) => sum + c.amount, 0),
       });
@@ -126,6 +142,24 @@ export class WalletBoardComponent {
   trackAccount = (_: number, account: TrackedAccount): string => account.id;
   trackBenefit = (_: number, benefit: AccountBenefit): string => benefit.id;
   trackDay = (_: number, row: MonthDayRow): string => row.date;
+
+  /** Prefer a unique palette color when several cards share the same stored accent. */
+  chipAccent(account: TrackedAccount, index: number): string {
+    const cards = this.items();
+    const stored = (account.accent || '').trim().toLowerCase();
+    const colliding = stored
+      ? cards.filter((c) => (c.accent || '').trim().toLowerCase() === stored).length > 1
+      : true;
+    if (!colliding && stored && stored !== '#f97066' && stored !== '#f5a623') {
+      return account.accent;
+    }
+    return CARD_PALETTE[index % CARD_PALETTE.length];
+  }
+
+  nextCardAccent(): string {
+    const used = new Set(this.items().map((c) => (c.accent || '').trim().toLowerCase()));
+    return CARD_PALETTE.find((color) => !used.has(color.toLowerCase())) ?? CARD_PALETTE[this.items().length % CARD_PALETTE.length];
+  }
 
   selectTab(kind: AccountKind): void {
     this.wallet.selectKind(kind);
@@ -415,7 +449,7 @@ export class WalletBoardComponent {
     this.draftAnnualFee.set(null);
     this.draftRenewsOn.set('');
     this.draftNotes.set('');
-    this.draftAccent.set(defaultAccent(kind));
+    this.draftAccent.set(kind === 'CREDIT_CARD' ? this.nextCardAccent() : defaultAccent(kind));
   }
 }
 
