@@ -187,17 +187,16 @@
           </button>
         </div>
 
-        <p class="ledger__hint">Tap a day to enter charges — they add into the Budget category you pick.</p>
+        <p class="ledger__hint">Every day of the month is listed — type an amount, pick a Budget category, hit Add.</p>
 
         <div class="day-list" *ngIf="categorySections().length; else noCategories">
           <article
             class="day-row"
             *ngFor="let row of monthDays(); trackBy: trackDay"
             [class.day-row--today]="row.isToday"
-            [class.day-row--active]="activeDay() === row.date"
             [class.day-row--filled]="row.charges.length > 0"
           >
-            <button type="button" class="day-row__head" (click)="activeDay() === row.date ? closeDay() : openDay(row.date)">
+            <div class="day-row__head">
               <span class="day-row__date">
                 <strong>{{ row.day }}</strong>
                 <em>{{ row.weekday }}</em>
@@ -208,61 +207,58 @@
                 </span>
               </span>
               <ng-template #emptyDay>
-                <span class="day-row__empty">No charges</span>
+                <span class="day-row__empty">No charges yet</span>
               </ng-template>
               <strong class="day-row__total" *ngIf="row.total">{{ row.total | currency }}</strong>
-              <lucide-icon [name]="activeDay() === row.date ? 'x' : 'plus'" [size]="14"></lucide-icon>
-            </button>
-
-            <div class="day-row__body" *ngIf="activeDay() === row.date">
-              <ul class="day-charges" *ngIf="row.charges.length">
-                <li *ngFor="let charge of row.charges">
-                  <div>
-                    <strong>{{ charge.categoryName }}</strong>
-                    <span>{{ charge.note || 'No note' }}</span>
-                  </div>
-                  <strong>{{ charge.amount | currency }}</strong>
-                  <button type="button" class="icon-danger" (click)="removeCharge(charge.id)" title="Delete">
-                    <lucide-icon name="trash-2" [size]="13"></lucide-icon>
-                  </button>
-                </li>
-              </ul>
-
-              <form class="day-form" (submit)="$event.preventDefault(); addDayCharge()">
-                <label class="day-form__amount">
-                  <span>$</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    inputmode="decimal"
-                    placeholder="0.00"
-                    [ngModel]="dayAmount()"
-                    (ngModelChange)="dayAmount.set($event)"
-                    [name]="'amt-' + row.date"
-                    required
-                  />
-                </label>
-                <select
-                  [ngModel]="dayCategoryId()"
-                  (ngModelChange)="dayCategoryId.set($event)"
-                  [name]="'cat-' + row.date"
-                  required
-                >
-                  <optgroup *ngFor="let section of categorySections()" [label]="section.label">
-                    <option *ngFor="let cat of section.categories" [value]="cat.id">{{ cat.name }}</option>
-                  </optgroup>
-                </select>
-                <input
-                  type="text"
-                  maxlength="200"
-                  placeholder="Note (optional)"
-                  [ngModel]="dayNote()"
-                  (ngModelChange)="dayNote.set($event)"
-                  [name]="'note-' + row.date"
-                />
-                <button type="submit" [disabled]="!canAddDay()">Add</button>
-              </form>
             </div>
+
+            <ul class="day-charges" *ngIf="row.charges.length">
+              <li *ngFor="let charge of row.charges">
+                <div>
+                  <strong>{{ charge.categoryName }}</strong>
+                  <span>{{ charge.note || 'No note' }}</span>
+                </div>
+                <strong>{{ charge.amount | currency }}</strong>
+                <button type="button" class="icon-danger" (click)="removeCharge(charge.id)" title="Delete">
+                  <lucide-icon name="trash-2" [size]="13"></lucide-icon>
+                </button>
+              </li>
+            </ul>
+
+            <form class="day-form" (submit)="$event.preventDefault(); addDayCharge(row.date)">
+              <label class="day-form__amount">
+                <span>$</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  inputmode="decimal"
+                  placeholder="0.00"
+                  [ngModel]="dayAmountValue(row.date)"
+                  (ngModelChange)="setDayAmount(row.date, $event)"
+                  [name]="'amt-' + row.date"
+                  required
+                />
+              </label>
+              <select
+                [ngModel]="dayCategoryValue(row.date)"
+                (ngModelChange)="setDayCategory(row.date, $event)"
+                [name]="'cat-' + row.date"
+                required
+              >
+                <optgroup *ngFor="let section of categorySections()" [label]="section.label">
+                  <option *ngFor="let cat of section.categories" [value]="cat.id">{{ cat.name }}</option>
+                </optgroup>
+              </select>
+              <input
+                type="text"
+                maxlength="200"
+                placeholder="Note"
+                [ngModel]="dayNoteValue(row.date)"
+                (ngModelChange)="setDayNote(row.date, $event)"
+                [name]="'note-' + row.date"
+              />
+              <button type="submit" [disabled]="!canAddDay(row.date)">Add</button>
+            </form>
           </article>
         </div>
 
