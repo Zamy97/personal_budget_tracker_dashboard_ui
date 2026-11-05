@@ -31,8 +31,8 @@ interface MonthDayRow {
   total: number;
 }
 
-/** Bold card colors — always used by index so every chip reads differently. */
-const CARD_PALETTE = ['#22d3ee', '#f59e0b', '#c084fc', '#34d399', '#fb7185', '#60a5fa', '#f472b6', '#a3e635'];
+/** Soft, Airbnb-like accents — muted enough to scan, not crayon-bright. */
+const CARD_PALETTE = ['#E85D4C', '#4A7C8C', '#8B7355', '#5C7A6E', '#7A6B8A', '#C97B63', '#5B7C99', '#A67C7C'];
 
 @Component({
   selector: 'app-wallet-board',
