@@ -31,8 +31,8 @@ interface MonthDayRow {
   total: number;
 }
 
-/** Soft, Airbnb-like accents — muted enough to scan, not crayon-bright. */
-const CARD_PALETTE = ['#E85D4C', '#4A7C8C', '#8B7355', '#5C7A6E', '#7A6B8A', '#C97B63', '#5B7C99', '#A67C7C'];
+/** Soft but readable card accents for dark UI (Stripe/Linear style, not neon). */
+const CARD_PALETTE = ['#F07167', '#4DB6AC', '#7E8CE0', '#E8A87C', '#6BBF8A', '#C9A0DC', '#5BA4D9', '#D4A574'];
 
 @Component({
   selector: 'app-wallet-board',
