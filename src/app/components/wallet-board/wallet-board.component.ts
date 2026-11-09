@@ -31,8 +31,8 @@ interface MonthDayRow {
   total: number;
 }
 
-/** Soft but brighter card accents so chips stay easy to tell apart. */
-const CARD_PALETTE = ['#FF7A6E', '#4ECDC4', '#8B97F0', '#F0B27A', '#74D39A', '#D4A8E8', '#62B4E8', '#E0B57A'];
+/** One clear accent per card so Amex / Venture / Apple / etc. never look identical. */
+const CARD_PALETTE = ['#FF7A6E', '#2EC4B6', '#6B8CFF', '#F0A35E', '#3DDC97', '#C084FC', '#38BDF8', '#E8B86D'];
 
 @Component({
   selector: 'app-wallet-board',
