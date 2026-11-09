@@ -31,8 +31,8 @@ interface MonthDayRow {
   total: number;
 }
 
-/** Soft but readable card accents for dark UI (Stripe/Linear style, not neon). */
-const CARD_PALETTE = ['#F07167', '#4DB6AC', '#7E8CE0', '#E8A87C', '#6BBF8A', '#C9A0DC', '#5BA4D9', '#D4A574'];
+/** Soft but brighter card accents so chips stay easy to tell apart. */
+const CARD_PALETTE = ['#FF7A6E', '#4ECDC4', '#8B97F0', '#F0B27A', '#74D39A', '#D4A8E8', '#62B4E8', '#E0B57A'];
 
 @Component({
   selector: 'app-wallet-board',

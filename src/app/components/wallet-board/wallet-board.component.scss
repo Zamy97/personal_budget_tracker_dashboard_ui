@@ -386,32 +386,32 @@
   gap: 0.4rem;
   padding: 0.55rem 0.65rem;
   border-radius: 0.9rem;
-  border: 1px solid #2a3340;
-  background: #1c222c;
+  border: 1px solid #334155;
+  background: #222937;
 }
 
 .day-row:nth-child(even) {
-  background: #1f2631;
+  background: #263041;
 }
 
 .day-row--weekend {
-  background: #242028;
-  border-color: #3a323c;
+  background: #2c2533;
+  border-color: #4a3d4f;
 }
 
 .day-row--today {
-  border-color: color-mix(in srgb, var(--card-accent) 55%, #2a3340);
-  background: color-mix(in srgb, var(--card-accent) 14%, #1c222c);
+  border-color: color-mix(in srgb, var(--card-accent) 65%, #334155);
+  background: color-mix(in srgb, var(--card-accent) 22%, #222937);
   box-shadow: inset 3px 0 0 var(--card-accent);
 }
 
 .day-row--filled {
-  background: color-mix(in srgb, #6BBF8A 10%, #1c222c);
-  border-color: rgba(107, 191, 138, 0.35);
+  background: color-mix(in srgb, #6BBF8A 16%, #222937);
+  border-color: rgba(107, 191, 138, 0.5);
 }
 
 .day-row--filled.day-row--today {
-  background: color-mix(in srgb, var(--card-accent) 16%, #1c222c);
+  background: color-mix(in srgb, var(--card-accent) 24%, #222937);
 }
 
 .day-row--filled .day-row__empty {
@@ -431,35 +431,35 @@
   align-items: center;
   justify-content: center;
   gap: 0.05rem;
-  min-width: 2.8rem;
-  min-height: 2.5rem;
+  min-width: 2.9rem;
+  min-height: 2.6rem;
   padding: 0.25rem 0.2rem;
-  border-radius: 0.65rem;
-  background: #2a3340;
-  border: 1px solid #3a4556;
+  border-radius: 0.7rem;
+  background: #3b4a63;
+  border: 1px solid #5b6f8f;
   line-height: 1.05;
 }
 
 .day-row--weekend .day-row__date {
-  background: #3a3038;
-  border-color: #554850;
+  background: #5a3f2e;
+  border-color: #e8a87c;
 }
 
 .day-row--today .day-row__date {
-  background: color-mix(in srgb, var(--card-accent) 35%, #2a3340);
-  border-color: color-mix(in srgb, var(--card-accent) 60%, #3a4556);
+  background: color-mix(in srgb, var(--card-accent) 55%, #3b4a63);
+  border-color: #fff;
 }
 
 .day-row--filled .day-row__date {
-  background: rgba(107, 191, 138, 0.18);
-  border-color: rgba(107, 191, 138, 0.4);
+  background: #2f5a42;
+  border-color: #6BBF8A;
 }
 
 .day-row__date strong {
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 1.05rem;
+  font-weight: 750;
   font-variant-numeric: tabular-nums;
-  color: #f3f6fa;
+  color: #ffffff;
 }
 
 .day-row--today .day-row__date strong {
@@ -468,19 +468,23 @@
 
 .day-row__date em {
   font-style: normal;
-  font-size: 0.58rem;
-  font-weight: 700;
+  font-size: 0.6rem;
+  font-weight: 750;
   letter-spacing: 0.04em;
-  color: #9aa8bc;
+  color: #c5d4ea;
   text-transform: uppercase;
 }
 
 .day-row--weekend .day-row__date em {
-  color: #e8a87c;
+  color: #ffd2a8;
 }
 
 .day-row--today .day-row__date em {
   color: #fff;
+}
+
+.day-row--filled .day-row__date em {
+  color: #b6e0c5;
 }
 
 .day-row__summary {
@@ -493,24 +497,24 @@
 .day-chip {
   padding: 0.2rem 0.5rem;
   border-radius: 999px;
-  background: rgba(107, 191, 138, 0.2);
-  border: 1px solid rgba(107, 191, 138, 0.45);
+  background: rgba(107, 191, 138, 0.28);
+  border: 1px solid rgba(107, 191, 138, 0.6);
   font-size: 0.68rem;
-  font-weight: 650;
-  color: #b6e0c5;
+  font-weight: 700;
+  color: #d4f0de;
   white-space: nowrap;
 }
 
 .day-row__empty {
   font-size: 0.74rem;
-  color: #7f8b9c;
+  color: #a8b6c9;
 }
 
 .day-row__total {
-  font-size: 0.9rem;
-  font-weight: 700;
+  font-size: 0.92rem;
+  font-weight: 750;
   font-variant-numeric: tabular-nums;
-  color: #6BBF8A;
+  color: #8fd0a8;
 }
 
 .day-charges {
