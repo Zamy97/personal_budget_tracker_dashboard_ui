@@ -190,6 +190,11 @@
         <p class="ledger__hint">Enter a charge on any day — amount, category, then Add.</p>
 
         <div class="day-list" *ngIf="categorySections().length; else noCategories">
+          <div class="day-list__head" aria-hidden="true">
+            <span>Day</span>
+            <span>Charges</span>
+            <span>Total</span>
+          </div>
           <article
             class="day-row"
             *ngFor="let row of monthDays(); trackBy: trackDay"
@@ -199,8 +204,8 @@
           >
             <div class="day-row__head">
               <span class="day-row__date">
-                <strong>{{ row.day }}</strong>
-                <em>{{ row.weekday }}</em>
+                <strong>{{ row.weekday }}</strong>
+                <em>{{ row.day }}</em>
               </span>
               <span class="day-row__summary" *ngIf="row.charges.length; else emptyDay">
                 <span class="day-chip" *ngFor="let charge of row.charges">
@@ -208,9 +213,9 @@
                 </span>
               </span>
               <ng-template #emptyDay>
-                <span class="day-row__empty">—</span>
+                <span class="day-row__empty">No charges</span>
               </ng-template>
-              <strong class="day-row__total" *ngIf="row.total">{{ row.total | currency }}</strong>
+              <strong class="day-row__total">{{ row.total ? (row.total | currency) : '—' }}</strong>
             </div>
 
             <ul class="day-charges" *ngIf="row.charges.length">
