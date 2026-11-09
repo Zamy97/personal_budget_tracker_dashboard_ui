@@ -255,8 +255,8 @@
   padding: 0.85rem;
   border-radius: 1rem;
   background:
-    linear-gradient(165deg, color-mix(in srgb, var(--card-accent) 16%, transparent), transparent 48%),
-    #171c24;
+    linear-gradient(165deg, color-mix(in srgb, var(--card-accent) 14%, transparent), transparent 48%),
+    #10141b;
   border: 1px solid color-mix(in srgb, var(--card-accent) 28%, rgba(255, 255, 255, 0.08));
   border-top: 3px solid var(--card-accent);
   overflow: hidden;
@@ -386,32 +386,32 @@
   gap: 0.4rem;
   padding: 0.55rem 0.65rem;
   border-radius: 0.9rem;
-  border: 1px solid #334155;
-  background: #222937;
+  border: 1px solid #1e2633;
+  background: #0d1118;
 }
 
 .day-row:nth-child(even) {
-  background: #263041;
+  background: #121821;
 }
 
 .day-row--weekend {
-  background: #2c2533;
-  border-color: #4a3d4f;
+  background: #151018;
+  border-color: #2a2230;
 }
 
 .day-row--today {
-  border-color: color-mix(in srgb, var(--card-accent) 65%, #334155);
-  background: color-mix(in srgb, var(--card-accent) 22%, #222937);
+  border-color: color-mix(in srgb, var(--card-accent) 70%, #1e2633);
+  background: color-mix(in srgb, var(--card-accent) 18%, #0d1118);
   box-shadow: inset 3px 0 0 var(--card-accent);
 }
 
 .day-row--filled {
-  background: color-mix(in srgb, #6BBF8A 16%, #222937);
-  border-color: rgba(107, 191, 138, 0.5);
+  background: color-mix(in srgb, #6BBF8A 12%, #0d1118);
+  border-color: rgba(107, 191, 138, 0.45);
 }
 
 .day-row--filled.day-row--today {
-  background: color-mix(in srgb, var(--card-accent) 24%, #222937);
+  background: color-mix(in srgb, var(--card-accent) 20%, #0d1118);
 }
 
 .day-row--filled .day-row__empty {
@@ -435,24 +435,24 @@
   min-height: 2.6rem;
   padding: 0.25rem 0.2rem;
   border-radius: 0.7rem;
-  background: #3b4a63;
-  border: 1px solid #5b6f8f;
+  background: #3f5270;
+  border: 1px solid #7a93b8;
   line-height: 1.05;
 }
 
 .day-row--weekend .day-row__date {
-  background: #5a3f2e;
-  border-color: #e8a87c;
+  background: #6a4630;
+  border-color: #f0b27a;
 }
 
 .day-row--today .day-row__date {
-  background: color-mix(in srgb, var(--card-accent) 55%, #3b4a63);
+  background: color-mix(in srgb, var(--card-accent) 62%, #1a2030);
   border-color: #fff;
 }
 
 .day-row--filled .day-row__date {
-  background: #2f5a42;
-  border-color: #6BBF8A;
+  background: #347a52;
+  border-color: #8fd0a8;
 }
 
 .day-row__date strong {
@@ -584,8 +584,8 @@
   gap: 0.25rem;
   padding: 0 0.55rem;
   border-radius: 0.65rem;
-  border: 1px solid rgba(107, 191, 138, 0.5);
-  background: #24342c;
+  border: 1px solid rgba(107, 191, 138, 0.55);
+  background: #1a2a22;
 }
 
 .day-form__amount span {
@@ -614,8 +614,8 @@
   min-width: 0;
   padding: 0.5rem 0.6rem;
   border-radius: 0.65rem;
-  border: 1px solid rgba(126, 140, 224, 0.5);
-  background: #272d45;
+  border: 1px solid rgba(139, 151, 240, 0.55);
+  background: #1a1f35;
   color: #dfe4ff;
   font: inherit;
   font-size: 0.78rem;
@@ -628,7 +628,7 @@
   padding: 0.5rem 0.6rem;
   border-radius: 0.65rem;
   border: 1px solid #3a4556;
-  background: #252b36;
+  background: #151a24;
   color: #eef2f7;
   font: inherit;
   font-size: 0.78rem;
