@@ -37,6 +37,8 @@ import {
   UserPlus,
   Ticket,
   LayoutDashboard,
+  Sparkles,
+  Lightbulb,
 } from 'lucide-angular';
 
 /** Central icon registry — pass to `LucideAngularModule.pick()` once at the app root. */
@@ -79,4 +81,6 @@ export const APP_ICONS = {
   UserPlus,
   Ticket,
   LayoutDashboard,
+  Sparkles,
+  Lightbulb,
 };

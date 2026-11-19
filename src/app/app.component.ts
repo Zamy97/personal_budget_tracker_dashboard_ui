@@ -10,6 +10,8 @@ import { AllocationDonutComponent } from './components/allocation-donut/allocati
 import { CategoryTableComponent } from './components/category-table/category-table.component';
 import { TransactionQuickAddComponent } from './components/transaction-quick-add/transaction-quick-add.component';
 import { WalletBoardComponent } from './components/wallet-board/wallet-board.component';
+import { AutoInsightsComponent } from './components/auto-insights/auto-insights.component';
+import { InsightsService } from './services/insights.service';
 
 type AppView = 'budget' | 'wallet';
 
@@ -20,6 +22,7 @@ type AppView = 'budget' | 'wallet';
     CommonModule,
     LucideAngularModule,
     AuthGateComponent,
+    AutoInsightsComponent,
     CashFlowSummaryComponent,
     GroupTotalsChartComponent,
     AllocationDonutComponent,
@@ -33,6 +36,7 @@ type AppView = 'budget' | 'wallet';
 export class AppComponent {
   auth = inject(AuthService);
   budget = inject(BudgetService);
+  insights = inject(InsightsService);
 
   view = signal<AppView>('budget');
   showQuickAdd = signal(false);

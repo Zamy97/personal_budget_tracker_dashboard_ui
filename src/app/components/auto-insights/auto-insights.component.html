@@ -1,0 +1,38 @@
+<section class="insights glass-card" aria-label="Automatic insights">
+  <header class="insights__head">
+    <div>
+      <p>Auto insights</p>
+      <h2>No extra setup — pulled from your budget & wallet</h2>
+    </div>
+    <div class="insights__metrics" *ngIf="insights.headline() as h">
+      <div class="insights__metric">
+        <span>Safe / day</span>
+        <strong [class.negative]="h.safePerDay < 0">{{ h.safePerDay | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+      </div>
+      <div class="insights__metric">
+        <span>Projected leftover</span>
+        <strong [class.negative]="h.projectedLeftover < 0">{{ h.projectedLeftover | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+      </div>
+      <div class="insights__metric" *ngIf="h.dailyBurn > 0">
+        <span>Daily burn</span>
+        <strong>{{ h.dailyBurn | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+      </div>
+    </div>
+  </header>
+
+  <div class="insights__grid">
+    <article
+      class="insight"
+      *ngFor="let tip of insights.insights()"
+      [attr.data-tone]="tip.tone"
+    >
+      <span class="insight__icon">
+        <lucide-icon [name]="tip.icon" [size]="15"></lucide-icon>
+      </span>
+      <div>
+        <strong>{{ tip.title }}</strong>
+        <p>{{ tip.detail }}</p>
+      </div>
+    </article>
+  </div>
+</section>

@@ -53,8 +53,14 @@
   animation: softFadeSwap 0.34s ease both;
 }
 
-.dashboard__row--summary[data-month] {
+.dashboard__row--summary[data-month],
+.dashboard__insights[data-month] {
   animation: softFadeSwap 0.34s ease both;
+}
+
+.dashboard__insights {
+  flex: 0 0 auto;
+  min-height: 0;
 }
 
 .app-title[data-month] {
@@ -161,9 +167,9 @@
   gap: 0.5rem;
 }
 
-/* Cash flow / chart / donut row — a bit tighter so category tables get more room. */
+/* Cash flow / chart / donut row — tighter so insights + tables still fit. */
 .dashboard__row--summary {
-  flex: 5 5 0;
+  flex: 4 4 0;
   min-height: 0;
 }
 

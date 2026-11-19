@@ -62,6 +62,12 @@
         </span>
       </div>
       <div class="stat-chip">
+        <span class="stat-chip__label">Safe / Day</span>
+        <span class="stat-chip__value" [class.negative]="insights.safePerDay() < 0">
+          {{ insights.safePerDay() | currency:'USD':'symbol-narrow':'1.0-0' }}
+        </span>
+      </div>
+      <div class="stat-chip">
         <span class="stat-chip__label">Days Left</span>
         <span class="stat-chip__value">{{ budget.daysLeft() }}</span>
       </div>
@@ -90,6 +96,10 @@
   </header>
 
   <ng-container *ngIf="view() === 'budget'">
+    <section class="dashboard__insights anim-enter" style="--delay: 1" [attr.data-month]="budget.selectedMonth()">
+      <app-auto-insights></app-auto-insights>
+    </section>
+
     <section
       class="dashboard__row dashboard__row--summary anim-enter"
       style="--delay: 1"
