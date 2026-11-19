@@ -187,39 +187,46 @@
           </button>
         </div>
 
-        <p class="ledger__hint">Enter a charge on any day — amount, category, then Add.</p>
-
-        <div class="day-list" *ngIf="categorySections().length; else noCategories">
-          <div class="day-list__head" aria-hidden="true">
-            <span>Day</span>
-            <span>Charges</span>
-            <span>Total</span>
+        <div class="cal" *ngIf="categorySections().length; else noCategories">
+          <div class="cal__weekdays" aria-hidden="true">
+            <span *ngFor="let label of weekdayLabels">{{ label }}</span>
           </div>
-          <article
-            class="day-row"
-            *ngFor="let row of monthDays(); trackBy: trackDay"
-            [class.day-row--today]="row.isToday"
-            [class.day-row--weekend]="row.isWeekend"
-            [class.day-row--filled]="row.charges.length > 0"
-          >
-            <div class="day-row__head">
-              <span class="day-row__date">
-                <strong>{{ row.weekday }}</strong>
-                <em>{{ row.day }}</em>
-              </span>
-              <span class="day-row__summary" *ngIf="row.charges.length; else emptyDay">
-                <span class="day-chip" *ngFor="let charge of row.charges">
-                  {{ charge.categoryName }} {{ charge.amount | currency }}
-                </span>
-              </span>
-              <ng-template #emptyDay>
-                <span class="day-row__empty">No charges</span>
-              </ng-template>
-              <strong class="day-row__total">{{ row.total ? (row.total | currency) : '—' }}</strong>
-            </div>
 
-            <ul class="day-charges" *ngIf="row.charges.length">
-              <li *ngFor="let charge of row.charges">
+          <div class="cal__grid" role="grid" [attr.aria-label]="budget.monthLabel() + ' charges'">
+            <ng-container *ngFor="let cell of calendarCells(); trackBy: trackCell; let i = index">
+              <button
+                *ngIf="cell; else blankCell"
+                type="button"
+                class="cal__cell"
+                role="gridcell"
+                [class.cal__cell--today]="cell.isToday"
+                [class.cal__cell--selected]="selectedDayRow()?.date === cell.date"
+                [class.cal__cell--filled]="cell.total > 0"
+                [class.cal__cell--weekend]="cell.isWeekend"
+                (click)="selectDay(cell.date)"
+              >
+                <span class="cal__day">{{ cell.day }}</span>
+                <span class="cal__amount" *ngIf="cell.total > 0">{{ cell.total | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
+                <span class="cal__amount cal__amount--empty" *ngIf="!cell.total">—</span>
+                <span class="cal__dot" *ngIf="cell.total > 0" aria-hidden="true"></span>
+              </button>
+              <ng-template #blankCell>
+                <span class="cal__cell cal__cell--blank" role="gridcell"></span>
+              </ng-template>
+            </ng-container>
+          </div>
+
+          <section class="cal-detail" *ngIf="selectedDayRow() as day">
+            <header class="cal-detail__head">
+              <div>
+                <p>{{ day.weekday }} · {{ budget.monthLabel() }}</p>
+                <h3>{{ day.day }}</h3>
+              </div>
+              <strong *ngIf="day.total">{{ day.total | currency }}</strong>
+            </header>
+
+            <ul class="day-charges" *ngIf="day.charges.length">
+              <li *ngFor="let charge of day.charges">
                 <div>
                   <strong>{{ charge.categoryName }}</strong>
                   <span>{{ charge.note || 'No note' }}</span>
@@ -230,8 +237,9 @@
                 </button>
               </li>
             </ul>
+            <p class="cal-detail__empty" *ngIf="!day.charges.length">No charges on this day yet.</p>
 
-            <form class="day-form" (submit)="$event.preventDefault(); addDayCharge(row.date)">
+            <form class="day-form" (submit)="$event.preventDefault(); addDayCharge()">
               <label class="day-form__amount">
                 <span>$</span>
                 <input
@@ -239,16 +247,16 @@
                   step="0.01"
                   inputmode="decimal"
                   placeholder="0.00"
-                  [ngModel]="dayAmountValue(row.date)"
-                  (ngModelChange)="setDayAmount(row.date, $event)"
-                  [name]="'amt-' + row.date"
+                  [ngModel]="dayAmount()"
+                  (ngModelChange)="dayAmount.set($event)"
+                  name="cal-amount"
                   required
                 />
               </label>
               <select
-                [ngModel]="dayCategoryValue(row.date)"
-                (ngModelChange)="setDayCategory(row.date, $event)"
-                [name]="'cat-' + row.date"
+                [ngModel]="dayCategoryId()"
+                (ngModelChange)="dayCategoryId.set($event)"
+                name="cal-category"
                 required
               >
                 <optgroup *ngFor="let section of categorySections()" [label]="section.label">
@@ -259,13 +267,13 @@
                 type="text"
                 maxlength="200"
                 placeholder="Note"
-                [ngModel]="dayNoteValue(row.date)"
-                (ngModelChange)="setDayNote(row.date, $event)"
-                [name]="'note-' + row.date"
+                [ngModel]="dayNote()"
+                (ngModelChange)="dayNote.set($event)"
+                name="cal-note"
               />
-              <button type="submit" [disabled]="!canAddDay(row.date)">Add</button>
+              <button type="submit" [disabled]="!canAddDay()">Add</button>
             </form>
-          </article>
+          </section>
         </div>
 
         <ng-template #noCategories>

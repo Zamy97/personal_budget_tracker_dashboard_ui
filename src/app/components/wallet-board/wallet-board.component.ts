@@ -61,14 +61,16 @@ export class WalletBoardComponent {
 
   /** Focused credit card for the day ledger. */
   focusedCardId = signal<string | null>(null);
-  /** Per-day draft amounts / notes / categories keyed by YYYY-MM-DD. */
-  dayAmounts = signal<Record<string, number | null>>({});
-  dayNotes = signal<Record<string, string>>({});
-  dayCategories = signal<Record<string, string>>({});
+  /** Selected calendar day (YYYY-MM-DD). */
+  selectedDay = signal<string | null>(null);
+  dayAmount = signal<number | null>(null);
+  dayNote = signal('');
+  dayCategoryId = signal('');
   lastCategoryByCard = signal<Record<string, string>>({});
 
   monthLabels = MONTH_LABELS;
   monthIndexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   activeTab = computed(() => this.wallet.tabs.find((t) => t.kind === this.wallet.selectedKind())!);
   items = this.wallet.accountsForSelected;
@@ -139,9 +141,38 @@ export class WalletBoardComponent {
     return rows;
   });
 
+  /** Sun–Sat month grid with leading blanks for the first week. */
+  calendarCells = computed(() => {
+    const days = this.monthDays();
+    if (!days.length) {
+      return [] as Array<MonthDayRow | null>;
+    }
+    const [year, monthNum] = days[0].date.split('-').map(Number);
+    const startWeekday = new Date(year, monthNum - 1, 1).getDay();
+    const cells: Array<MonthDayRow | null> = Array.from({ length: startWeekday }, () => null);
+    cells.push(...days);
+    return cells;
+  });
+
+  selectedDayRow = computed(() => {
+    const days = this.monthDays();
+    if (!days.length) {
+      return null;
+    }
+    const selected = this.selectedDay();
+    if (selected) {
+      const match = days.find((d) => d.date === selected);
+      if (match) {
+        return match;
+      }
+    }
+    return days.find((d) => d.isToday) ?? days[0];
+  });
+
   trackAccount = (_: number, account: TrackedAccount): string => account.id;
   trackBenefit = (_: number, benefit: AccountBenefit): string => benefit.id;
   trackDay = (_: number, row: MonthDayRow): string => row.date;
+  trackCell = (index: number, cell: MonthDayRow | null): string => cell?.date ?? `blank-${index}`;
 
   /** Stable bold color per card position so the picker is easy to scan. */
   chipAccent(_account: TrackedAccount, index: number): string {
@@ -159,6 +190,7 @@ export class WalletBoardComponent {
     if (kind === 'CREDIT_CARD') {
       const first = this.wallet.accountsForSelected()[0];
       this.focusedCardId.set(first?.id ?? null);
+      this.ensureSelectedDay();
     }
   }
 
@@ -166,6 +198,7 @@ export class WalletBoardComponent {
     this.focusedCardId.set(account.id);
     this.clearDayDrafts();
     this.benefitsOpen.update((map) => ({ ...map, [account.id]: false }));
+    this.ensureSelectedDay();
   }
 
   cardSpend(accountId: string): number {
@@ -175,79 +208,71 @@ export class WalletBoardComponent {
   previousMonth(): void {
     this.budget.goToPreviousMonth();
     this.clearDayDrafts();
+    this.selectedDay.set(null);
+    setTimeout(() => this.ensureSelectedDay(), 0);
   }
 
   nextMonth(): void {
     this.budget.goToNextMonth();
     this.clearDayDrafts();
+    this.selectedDay.set(null);
+    setTimeout(() => this.ensureSelectedDay(), 0);
   }
 
   jumpToToday(): void {
     this.budget.goToCurrentMonth();
     this.clearDayDrafts();
-    setTimeout(() => {
-      document.querySelector('.day-row--today')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    }, 0);
+    const today = new Date();
+    const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    this.selectDay(iso);
+  }
+
+  ensureSelectedDay(): void {
+    const row = this.selectedDayRow();
+    if (row) {
+      this.selectedDay.set(row.date);
+      this.prepareDayForm();
+    }
+  }
+
+  selectDay(date: string): void {
+    this.selectedDay.set(date);
+    this.dayAmount.set(null);
+    this.dayNote.set('');
+    this.prepareDayForm();
+  }
+
+  prepareDayForm(): void {
+    const card = this.focusedCard();
+    const remembered = card ? this.lastCategoryByCard()[card.id] : '';
+    const sections = this.categorySections();
+    const fallback =
+      sections.find((s) => s.group === 'expenses')?.categories[0]?.id ?? sections[0]?.categories[0]?.id ?? '';
+    this.dayCategoryId.set(remembered || fallback || this.dayCategoryId());
   }
 
   clearDayDrafts(): void {
-    this.dayAmounts.set({});
-    this.dayNotes.set({});
-    this.dayCategories.set({});
+    this.dayAmount.set(null);
+    this.dayNote.set('');
   }
 
-  defaultCategoryId(): string {
+  canAddDay(): boolean {
+    const amount = this.dayAmount();
+    return !!this.focusedCard() && !!this.selectedDayRow() && !!this.dayCategoryId() && amount != null && Number.isFinite(amount);
+  }
+
+  addDayCharge(): void {
     const card = this.focusedCard();
-    const remembered = card ? this.lastCategoryByCard()[card.id] : '';
-    if (remembered) {
-      return remembered;
-    }
-    const sections = this.categorySections();
-    return (
-      sections.find((s) => s.group === 'expenses')?.categories[0]?.id ?? sections[0]?.categories[0]?.id ?? ''
-    );
-  }
-
-  dayAmountValue(date: string): number | null {
-    return this.dayAmounts()[date] ?? null;
-  }
-
-  setDayAmount(date: string, value: number | null): void {
-    this.dayAmounts.update((map) => ({ ...map, [date]: value }));
-  }
-
-  dayNoteValue(date: string): string {
-    return this.dayNotes()[date] ?? '';
-  }
-
-  setDayNote(date: string, value: string): void {
-    this.dayNotes.update((map) => ({ ...map, [date]: value }));
-  }
-
-  dayCategoryValue(date: string): string {
-    return this.dayCategories()[date] || this.defaultCategoryId();
-  }
-
-  setDayCategory(date: string, value: string): void {
-    this.dayCategories.update((map) => ({ ...map, [date]: value }));
-  }
-
-  canAddDay(date: string): boolean {
-    const amount = this.dayAmountValue(date);
-    return !!this.focusedCard() && !!this.dayCategoryValue(date) && amount != null && Number.isFinite(amount);
-  }
-
-  addDayCharge(date: string): void {
-    const card = this.focusedCard();
-    const amount = this.dayAmountValue(date);
-    const categoryId = this.dayCategoryValue(date);
-    if (!card || amount == null || !categoryId || !this.canAddDay(date)) {
+    const row = this.selectedDayRow();
+    const amount = this.dayAmount();
+    const categoryId = this.dayCategoryId();
+    if (!card || !row || amount == null || !categoryId || !this.canAddDay()) {
       return;
     }
-    this.budget.addLineItem(categoryId, date, this.dayNoteValue(date).trim(), amount, card.id);
+    this.budget.addLineItem(categoryId, row.date, this.dayNote().trim(), amount, card.id);
     this.lastCategoryByCard.update((map) => ({ ...map, [card.id]: categoryId }));
-    this.dayAmounts.update((map) => ({ ...map, [date]: null }));
-    this.dayNotes.update((map) => ({ ...map, [date]: '' }));
+    this.dayAmount.set(null);
+    this.dayNote.set('');
   }
 
   removeCharge(id: string): void {
